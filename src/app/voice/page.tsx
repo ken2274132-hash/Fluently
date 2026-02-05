@@ -272,20 +272,20 @@ export default function VoicePage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col bg-white dark:bg-[#09090b]">
             {/* Header */}
-            <header className="navbar px-6">
+            <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800/50">
                 <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link
-                            href="/"
-                            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white"
+                            href="/dashboard"
+                            className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                         >
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="font-semibold">{SITE_CONFIG.name}</h1>
-                            <p className="text-xs text-zinc-500">{status}</p>
+                            <h1 className="font-semibold text-zinc-900 dark:text-white">{SITE_CONFIG.name}</h1>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">{status}</p>
                         </div>
                     </div>
 
@@ -295,7 +295,7 @@ export default function VoicePage() {
                                 isRecording ? 'bg-red-500 animate-pulse' :
                                 isThinking ? 'bg-amber-500 animate-pulse' :
                                 isPlaying ? 'bg-emerald-500' :
-                                'bg-zinc-500'
+                                'bg-zinc-400 dark:bg-zinc-500'
                             }`} />
                             <span className="text-xs">
                                 {isRecording ? 'Listening' : isThinking ? 'Processing' : isPlaying ? 'Speaking' : 'Ready'}
@@ -305,7 +305,7 @@ export default function VoicePage() {
                         {sessionStarted && (
                             <button
                                 onClick={endSession}
-                                className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-xl transition-all"
+                                className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all"
                             >
                                 <Phone size={18} className="rotate-[135deg]" />
                             </button>
@@ -315,7 +315,7 @@ export default function VoicePage() {
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 pt-8 pb-12">
+            <main className="flex-1 pt-24 pb-12">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-8 h-full">
                     {/* Left: Voice Orb Section */}
                     <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
@@ -356,10 +356,10 @@ export default function VoicePage() {
                                     isRecording
                                         ? 'bg-gradient-to-br from-indigo-500 to-purple-600 shadow-[0_0_60px_rgba(99,102,241,0.4)]'
                                         : isThinking
-                                            ? 'bg-zinc-800 border-2 border-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.2)]'
+                                            ? 'bg-zinc-100 dark:bg-zinc-800 border-2 border-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.2)]'
                                             : isPlaying
-                                                ? 'bg-zinc-800 border-2 border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.2)]'
-                                                : 'bg-zinc-800 border border-zinc-700 hover:border-indigo-500/50 hover:shadow-[0_0_40px_rgba(99,102,241,0.15)]'
+                                                ? 'bg-zinc-100 dark:bg-zinc-800 border-2 border-emerald-500/50 shadow-[0_0_40px_rgba(16,185,129,0.2)]'
+                                                : 'bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-indigo-500/50 hover:shadow-[0_0_40px_rgba(99,102,241,0.15)]'
                                 }`}
                                 animate={{ scale: getOrbScale() }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
@@ -368,14 +368,14 @@ export default function VoicePage() {
                                     {isRecording ? (
                                         <MicOff size={40} className="text-white" />
                                     ) : isThinking ? (
-                                        <Loader2 size={40} className="animate-spin text-amber-400" />
+                                        <Loader2 size={40} className="animate-spin text-amber-500" />
                                     ) : isPlaying ? (
-                                        <Volume2 size={40} className="text-emerald-400 animate-pulse" />
+                                        <Volume2 size={40} className="text-emerald-500 animate-pulse" />
                                     ) : (
-                                        <Mic size={40} className={sessionStarted ? 'text-zinc-400' : 'text-zinc-600'} />
+                                        <Mic size={40} className={sessionStarted ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-400 dark:text-zinc-600'} />
                                     )}
                                     <span className={`mt-3 text-xs font-medium ${
-                                        isRecording ? 'text-white/80' : 'text-zinc-500'
+                                        isRecording ? 'text-white/80' : 'text-zinc-500 dark:text-zinc-400'
                                     }`}>
                                         {!sessionStarted ? 'Start session first' : isRecording ? 'Release to send' : 'Hold to speak'}
                                     </span>
@@ -394,8 +394,8 @@ export default function VoicePage() {
                                     className="mt-12 w-full max-w-md"
                                 >
                                     <div className="text-center mb-6">
-                                        <h2 className="text-xl font-semibold mb-2">Choose Your Topic</h2>
-                                        <p className="text-sm text-zinc-500">Select a conversation scenario to begin</p>
+                                        <h2 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-white">Choose Your Topic</h2>
+                                        <p className="text-sm text-zinc-500 dark:text-zinc-400">Select a conversation scenario to begin</p>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3 mb-6">
@@ -406,15 +406,15 @@ export default function VoicePage() {
                                                 className={`p-4 rounded-xl text-left transition-all ${
                                                     selectedTopic.id === topic.id
                                                         ? 'bg-indigo-500/10 border-2 border-indigo-500/50'
-                                                        : 'bg-zinc-800/50 border border-zinc-800 hover:border-zinc-700'
+                                                        : 'bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <span className={selectedTopic.id === topic.id ? 'text-indigo-400' : 'text-zinc-400'}>
+                                                    <span className={selectedTopic.id === topic.id ? 'text-indigo-500' : 'text-zinc-500 dark:text-zinc-400'}>
                                                         {topic.icon}
                                                     </span>
                                                     <span className={`text-sm font-medium ${
-                                                        selectedTopic.id === topic.id ? 'text-indigo-400' : ''
+                                                        selectedTopic.id === topic.id ? 'text-indigo-500' : 'text-zinc-900 dark:text-white'
                                                     }`}>
                                                         {topic.label}
                                                     </span>
@@ -443,7 +443,7 @@ export default function VoicePage() {
                                         <MessageCircle size={12} />
                                         {selectedTopic.label}
                                     </div>
-                                    <p className="text-sm text-zinc-500 max-w-xs mx-auto">
+                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto">
                                         Hold the orb and speak. Release when you&apos;re done to send your message.
                                     </p>
                                 </motion.div>
@@ -452,11 +452,11 @@ export default function VoicePage() {
                     </div>
 
                     {/* Right: Conversation Log */}
-                    <div className="w-full lg:w-96 glass-card rounded-2xl flex flex-col overflow-hidden h-[600px] lg:sticky lg:top-24">
-                        <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+                    <div className="w-full lg:w-96 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 flex flex-col overflow-hidden h-[600px] lg:sticky lg:top-24 shadow-sm">
+                        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800/50 flex items-center justify-between">
                             <div>
-                                <h3 className="font-semibold">Conversation</h3>
-                                <p className="text-xs text-zinc-500">{messages.length} messages</p>
+                                <h3 className="font-semibold text-zinc-900 dark:text-white">Conversation</h3>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400">{messages.length} messages</p>
                             </div>
                             <div className="badge">
                                 <Sparkles size={12} />
@@ -467,11 +467,11 @@ export default function VoicePage() {
                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
                             {messages.length === 0 && (
                                 <div className="h-full flex flex-col items-center justify-center text-center">
-                                    <div className="w-16 h-16 rounded-2xl bg-zinc-800 flex items-center justify-center mb-4">
-                                        <Sparkles size={24} className="text-zinc-600" />
+                                    <div className="w-16 h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mb-4">
+                                        <Sparkles size={24} className="text-zinc-400 dark:text-zinc-600" />
                                     </div>
-                                    <p className="text-sm font-medium text-zinc-500 mb-1">No messages yet</p>
-                                    <p className="text-xs text-zinc-600 max-w-[200px]">
+                                    <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">No messages yet</p>
+                                    <p className="text-xs text-zinc-400 dark:text-zinc-600 max-w-[200px]">
                                         {sessionStarted
                                             ? 'Hold the orb and start speaking'
                                             : 'Start a session to begin'}
@@ -487,7 +487,7 @@ export default function VoicePage() {
                                         animate={{ opacity: 1, y: 0 }}
                                         className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
                                     >
-                                        <span className="text-[10px] font-medium text-zinc-500 mb-1.5 uppercase tracking-wide">
+                                        <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wide">
                                             {m.role === 'user' ? 'You' : 'AI Teacher'}
                                         </span>
                                         <div className={m.role === 'user' ? 'message-user' : 'message-ai'}>

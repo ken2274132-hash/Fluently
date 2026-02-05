@@ -182,7 +182,7 @@ export default function DashboardPage() {
         </Link>
 
         <Link
-          href="/voice?mode=video"
+          href="/video"
           className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 p-6 hover:border-cyan-500/40 transition-all"
         >
           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-full blur-3xl" />
