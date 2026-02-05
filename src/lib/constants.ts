@@ -15,7 +15,7 @@ export const TOPICS: Topic[] = [
         id: 'casual',
         label: 'Casual Chat',
         icon: createElement(Coffee, { size: 18 }),
-        prompt: "Hi! Let's just have a friendly, casual chat about our day and hobbies.",
+        prompt: "Hello teacher! I'm starting a new session. Please introduce yourself and let's have a casual conversation.",
         color: 'bg-orange-500/20 text-orange-400',
         gradient: 'from-orange-500 to-amber-500'
     },
@@ -23,7 +23,7 @@ export const TOPICS: Topic[] = [
         id: 'work',
         label: 'Job Interview',
         icon: createElement(Briefcase, { size: 18 }),
-        prompt: "I'd like to practice a job interview for a Software Engineer position. Please act as the interviewer.",
+        prompt: "Hello teacher! I'm starting a new session. Please introduce yourself and help me practice for a job interview.",
         color: 'bg-blue-500/20 text-blue-400',
         gradient: 'from-blue-500 to-indigo-500'
     },
@@ -31,7 +31,7 @@ export const TOPICS: Topic[] = [
         id: 'travel',
         label: 'Travel Planning',
         icon: createElement(Plane, { size: 18 }),
-        prompt: "I'm planning a trip to London. Let's roleplay arriving at the airport and checking into a hotel.",
+        prompt: "Hello teacher! I'm starting a new session. Please introduce yourself and help me practice travel conversations.",
         color: 'bg-emerald-500/20 text-emerald-400',
         gradient: 'from-emerald-500 to-teal-500'
     },
@@ -39,7 +39,7 @@ export const TOPICS: Topic[] = [
         id: 'grammar',
         label: 'Grammar Pro',
         icon: createElement(BookOpen, { size: 18 }),
-        prompt: "I want to focus strictly on my English grammar today. Please correct any mistakes I make immediately.",
+        prompt: "Hello teacher! I'm starting a new session. Please introduce yourself and help me practice my grammar.",
         color: 'bg-purple-500/20 text-purple-400',
         gradient: 'from-purple-500 to-pink-500'
     },
