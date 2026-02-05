@@ -1,45 +1,37 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-// Clean up old/stale Supabase auth cookies to prevent 431 errors
-function cleanupCookies(request: NextRequest, response: NextResponse) {
-  const cookies = request.cookies.getAll();
-  const supabaseCookies = cookies.filter(c =>
-    c.name.startsWith('sb-') ||
-    c.name.includes('supabase') ||
-    c.name.includes('auth-token')
-  );
+export async function updateSession(request: NextRequest) {
+  // Skip middleware for clear-cookies page and API routes
+  if (request.nextUrl.pathname === '/clear-cookies' ||
+      request.nextUrl.pathname.startsWith('/api/clear')) {
+    return NextResponse.next();
+  }
 
-  // If there are too many Supabase cookies (more than 10), clean up old chunked ones
-  if (supabaseCookies.length > 10) {
-    // Delete all chunked cookies (they have numbers like .0, .1, .2 etc)
-    supabaseCookies.forEach(cookie => {
-      if (/\.\d+$/.test(cookie.name)) {
+  // Check cookie size first - if too large, clear them immediately
+  const cookies = request.cookies.getAll();
+  const totalCookieSize = cookies.reduce((acc, c) => acc + c.name.length + c.value.length + 4, 0);
+
+  // If cookies are over 4KB, clear all supabase cookies and redirect to clear page
+  if (totalCookieSize > 4000) {
+    const response = NextResponse.redirect(new URL('/clear-cookies', request.url));
+
+    // Delete all supabase-related cookies
+    cookies.forEach(cookie => {
+      if (cookie.name.startsWith('sb-') ||
+          cookie.name.includes('supabase') ||
+          cookie.name.includes('auth-token') ||
+          cookie.value.length > 1000) {
         response.cookies.delete(cookie.name);
       }
     });
+
+    return response;
   }
 
-  // Calculate total cookie header size
-  const totalCookieSize = cookies.reduce((acc, c) => acc + c.name.length + c.value.length + 4, 0);
-
-  // If cookies are getting too large (over 6KB), clear all Supabase auth cookies
-  if (totalCookieSize > 6000) {
-    supabaseCookies.forEach(cookie => {
-      response.cookies.delete(cookie.name);
-    });
-  }
-
-  return response;
-}
-
-export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
-
-  // Clean up cookies before processing
-  supabaseResponse = cleanupCookies(request, supabaseResponse);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -50,13 +42,16 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
+          // Filter out any cookies that are too large (likely base64 images)
+          const safeCookies = cookiesToSet.filter(({ value }) => value.length < 2000);
+
+          safeCookies.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
             request,
           });
-          cookiesToSet.forEach(({ name, value, options }) =>
+          safeCookies.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
         },
@@ -87,7 +82,6 @@ export async function updateSession(request: NextRequest) {
   );
 
   if (isAdminRoute && user) {
-    // Check if user is admin (you can customize this logic)
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')

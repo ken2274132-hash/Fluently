@@ -14,7 +14,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
-  const { user, isLoading, signOut } = useAuth();
+  const { user, profile, isLoading, signOut } = useAuth();
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
@@ -27,10 +27,11 @@ export default function Navbar() {
     router.refresh();
   };
 
-  // Get user's display name or email
-  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  // Get user's display name from profile or user metadata
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
   const userInitial = displayName.charAt(0).toUpperCase();
-  const avatarUrl = user?.user_metadata?.avatar_url;
+  // Get avatar from profile table only (not user metadata - that causes cookie size issues)
+  const avatarUrl = profile?.avatar_url;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800/50">

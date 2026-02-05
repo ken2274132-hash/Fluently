@@ -1,21 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import {
   User,
   Mail,
   Globe,
   Calendar,
-  Camera,
   Save,
   Loader2,
-  Check,
-  X,
-  Upload
+  Check
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 const languages = [
   'English', 'Spanish', 'French', 'German', 'Portuguese',
@@ -34,11 +31,6 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [imageError, setImageError] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -46,15 +38,13 @@ export default function ProfilePage() {
     englishLevel: 'intermediate',
     learningGoal: '',
   });
-  const [userId, setUserId] = useState<string | null>(null);
   const supabase = createClient();
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setUserId(user.id);
-
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
@@ -66,111 +56,12 @@ export default function ProfilePage() {
           email: user.email || '',
           nativeLanguage: profile?.native_language || 'Spanish',
           englishLevel: profile?.english_level || 'intermediate',
-          learningGoal: profile?.learning_goal || 'I want to improve my English for work and be able to participate confidently in meetings.',
+          learningGoal: profile?.learning_goal || '',
         });
-
-        // Load avatar URL
-        if (profile?.avatar_url) {
-          setAvatarUrl(profile.avatar_url);
-        } else if (user.user_metadata?.avatar_url) {
-          setAvatarUrl(user.user_metadata.avatar_url);
-        }
       }
     }
     loadProfile();
   }, [supabase]);
-
-  const handleImageClick = () => {
-    setShowImageModal(true);
-  };
-
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !userId) return;
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setImageError('Please upload a valid image (JPEG, PNG, GIF, or WebP)');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError('Image must be less than 5MB');
-      return;
-    }
-
-    setImageError('');
-    setIsUploadingImage(true);
-
-    try {
-      // Create a unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
-
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) {
-        // If bucket doesn't exist, try to create it or use a fallback
-        console.error('Upload error:', uploadError);
-
-        // Storage bucket doesn't exist - show error instead of using data URL
-        // Data URLs stored in cookies cause 431 errors
-        setImageError('Image storage not configured. Please contact support or set up Supabase Storage bucket named "avatars".');
-        setIsUploadingImage(false);
-        return;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      setAvatarUrl(publicUrl);
-
-      // Update profile with new avatar URL
-      await supabase
-        .from('profiles')
-        .update({ avatar_url: publicUrl })
-        .eq('id', userId);
-
-      setShowImageModal(false);
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setImageError('Failed to upload image. Please try again.');
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
-
-  const handleRemoveImage = async () => {
-    if (!userId) return;
-
-    setIsUploadingImage(true);
-    try {
-      // Update profile to remove avatar URL
-      await supabase
-        .from('profiles')
-        .update({ avatar_url: null })
-        .eq('id', userId);
-
-      setAvatarUrl(null);
-      setShowImageModal(false);
-    } catch (error) {
-      console.error('Error removing image:', error);
-      setImageError('Failed to remove image. Please try again.');
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -188,7 +79,6 @@ export default function ProfilePage() {
           native_language: formData.nativeLanguage,
           english_level: formData.englishLevel,
           learning_goal: formData.learningGoal,
-          avatar_url: avatarUrl,
           updated_at: new Date().toISOString(),
         });
 
@@ -199,12 +89,15 @@ export default function ProfilePage() {
         return;
       }
 
-      // Update auth user metadata with name only (not avatar - stored in profiles table)
+      // Update auth user metadata
       await supabase.auth.updateUser({
         data: {
           full_name: formData.name,
         }
       });
+
+      // Refresh profile in context so navbar updates
+      await refreshProfile();
 
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
@@ -236,29 +129,8 @@ export default function ProfilePage() {
           className="rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-6 shadow-sm"
         >
           <div className="flex items-center gap-6">
-            <div className="relative">
-              {avatarUrl ? (
-                <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg shadow-indigo-500/20">
-                  <Image
-                    src={avatarUrl}
-                    alt="Profile avatar"
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                    unoptimized={avatarUrl.startsWith('data:')}
-                  />
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-indigo-500/20">
-                  {formData.name?.[0]?.toUpperCase() || 'U'}
-                </div>
-              )}
-              <button
-                onClick={handleImageClick}
-                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl bg-indigo-500 flex items-center justify-center text-white hover:bg-indigo-600 transition-colors shadow-lg"
-              >
-                <Camera size={16} />
-              </button>
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-indigo-500/20">
+              {formData.name?.[0]?.toUpperCase() || 'U'}
             </div>
             <div>
               <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">{formData.name || 'User'}</h2>
@@ -434,96 +306,6 @@ export default function ProfilePage() {
           </button>
         </motion.div>
       </div>
-
-      {/* Image Upload Modal */}
-      {showImageModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl"
-          >
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
-              <h3 className="font-semibold text-zinc-900 dark:text-white">Update Profile Picture</h3>
-              <button
-                onClick={() => setShowImageModal(false)}
-                className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-              >
-                <X size={20} className="text-zinc-500" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              {/* Current Avatar Preview */}
-              <div className="flex justify-center">
-                {avatarUrl ? (
-                  <div className="w-32 h-32 rounded-2xl overflow-hidden shadow-lg">
-                    <Image
-                      src={avatarUrl}
-                      alt="Current avatar"
-                      width={128}
-                      height={128}
-                      className="w-full h-full object-cover"
-                      unoptimized={avatarUrl.startsWith('data:')}
-                    />
-                  </div>
-                ) : (
-                  <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-4xl font-bold text-white shadow-lg">
-                    {formData.name?.[0]?.toUpperCase() || 'U'}
-                  </div>
-                )}
-              </div>
-
-              {/* Error Message */}
-              {imageError && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-sm text-center">
-                  {imageError}
-                </div>
-              )}
-
-              {/* Upload Button */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploadingImage}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-medium hover:bg-indigo-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isUploadingImage ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Upload size={18} />
-                    <span>Upload New Image</span>
-                  </>
-                )}
-              </button>
-
-              <p className="text-xs text-zinc-500 text-center">
-                Supported formats: JPEG, PNG, GIF, WebP. Max size: 5MB
-              </p>
-
-              {/* Remove Button */}
-              {avatarUrl && (
-                <button
-                  onClick={handleRemoveImage}
-                  disabled={isUploadingImage}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <X size={18} />
-                  <span>Remove Image</span>
-                </button>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 }
