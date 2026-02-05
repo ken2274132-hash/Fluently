@@ -20,34 +20,61 @@ function ResetPasswordForm() {
   const supabase = createClient();
 
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
+
     // Exchange the code for a session
     const handleCodeExchange = async () => {
       const code = searchParams.get('code');
 
+      // Add timeout to prevent infinite loading
+      timeoutId = setTimeout(() => {
+        if (isMounted) {
+          setError('Verification timed out. Please request a new reset link.');
+        }
+      }, 10000); // 10 second timeout
+
       if (code) {
         try {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) {
-            console.error('Code exchange error:', error);
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (!isMounted) return;
+          clearTimeout(timeoutId);
+
+          if (exchangeError) {
+            console.error('Code exchange error:', exchangeError);
             setError('Invalid or expired reset link. Please request a new one.');
-          } else {
+          } else if (data?.session) {
             setIsReady(true);
+          } else {
+            setError('Could not verify reset link. Please try again.');
           }
         } catch (err) {
+          if (!isMounted) return;
+          clearTimeout(timeoutId);
           console.error('Code exchange exception:', err);
           setError('Failed to verify reset link. Please try again.');
         }
       } else {
-        // No code, check if we have an existing session
+        // No code, check if we have an existing session from hash fragment
+        clearTimeout(timeoutId);
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setIsReady(true);
-        } else {
-          setError('Invalid or expired reset link. Please request a new one.');
+        if (isMounted) {
+          if (session) {
+            setIsReady(true);
+          } else {
+            setError('Invalid or expired reset link. Please request a new one.');
+          }
         }
       }
     };
+
     handleCodeExchange();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [supabase, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
