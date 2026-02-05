@@ -321,7 +321,8 @@ export default function VoicePage() {
                     <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
                         {/* Voice Orb */}
                         <motion.div
-                            className="relative cursor-pointer"
+                            className="relative cursor-pointer select-none touch-manipulation"
+                            style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
                             onMouseDown={sessionStarted ? startRecording : undefined}
                             onMouseUp={sessionStarted ? stopRecording : undefined}
                             onMouseLeave={sessionStarted ? stopRecording : undefined}
@@ -374,7 +375,7 @@ export default function VoicePage() {
                                     ) : (
                                         <Mic size={40} className={sessionStarted ? 'text-zinc-500 dark:text-zinc-400' : 'text-zinc-400 dark:text-zinc-600'} />
                                     )}
-                                    <span className={`mt-3 text-xs font-medium ${
+                                    <span className={`mt-3 text-xs font-medium select-none ${
                                         isRecording ? 'text-white/80' : 'text-zinc-500 dark:text-zinc-400'
                                     }`}>
                                         {!sessionStarted ? 'Start session first' : isRecording ? 'Release to send' : 'Hold to speak'}
