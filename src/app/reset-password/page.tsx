@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Sparkles, Lock, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/constants';
@@ -10,7 +10,6 @@ import { createClient } from '@/lib/supabase/client';
 
 function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,61 +20,34 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     let isMounted = true;
-    let timeoutId: NodeJS.Timeout;
 
-    // Exchange the code for a session
-    const handleCodeExchange = async () => {
-      const code = searchParams.get('code');
-
-      // Add timeout to prevent infinite loading
-      timeoutId = setTimeout(() => {
-        if (isMounted) {
-          setError('Verification timed out. Please request a new reset link.');
-        }
-      }, 10000); // 10 second timeout
-
-      if (code) {
-        try {
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
-          if (!isMounted) return;
-          clearTimeout(timeoutId);
-
-          if (exchangeError) {
-            console.error('Code exchange error:', exchangeError);
-            setError('Invalid or expired reset link. Please request a new one.');
-          } else if (data?.session) {
-            setIsReady(true);
-          } else {
-            setError('Could not verify reset link. Please try again.');
-          }
-        } catch (err) {
-          if (!isMounted) return;
-          clearTimeout(timeoutId);
-          console.error('Code exchange exception:', err);
-          setError('Failed to verify reset link. Please try again.');
-        }
-      } else {
-        // No code, check if we have an existing session from hash fragment
-        clearTimeout(timeoutId);
+    // Check if user has a valid session (code was already exchanged by /auth/callback)
+    const checkSession = async () => {
+      try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (isMounted) {
-          if (session) {
-            setIsReady(true);
-          } else {
-            setError('Invalid or expired reset link. Please request a new one.');
-          }
+
+        if (!isMounted) return;
+
+        if (session) {
+          setIsReady(true);
+        } else {
+          setError('Invalid or expired reset link. Please request a new one.');
         }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error('Session check error:', err);
+        setError('Failed to verify session. Please try again.');
       }
     };
 
-    handleCodeExchange();
+    // Small delay to ensure session is properly set after redirect
+    const timeoutId = setTimeout(checkSession, 500);
 
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [supabase, searchParams]);
+  }, [supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
