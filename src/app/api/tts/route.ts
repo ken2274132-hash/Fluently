@@ -24,9 +24,10 @@ export async function POST(req: Request) {
         const apiKey = process.env.OPENAI_API_KEY;
 
         if (!apiKey) {
-            console.error("TTS Error: OPENAI_API_KEY is missing");
+            // No API key - use browser fallback
             return NextResponse.json({
-                error: "TTS service unavailable. Please use browser voice fallback."
+                error: "TTS service unavailable. Using browser voice.",
+                fallback: true
             }, { status: 503 });
         }
 
@@ -45,12 +46,10 @@ export async function POST(req: Request) {
         });
 
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: "Unknown error" }));
+            // API error (including quota issues) - use browser fallback
             console.error("OpenAI TTS Error:", response.status);
-
-            // Return 503 to trigger client-side fallback
             return NextResponse.json({
-                error: error.message || "Speech generation failed",
+                error: "TTS service unavailable. Using browser voice.",
                 fallback: true
             }, { status: 503 });
         }
@@ -65,7 +64,10 @@ export async function POST(req: Request) {
         });
     } catch (error: unknown) {
         console.error("TTS Server Error:", error);
-        const message = error instanceof Error ? error.message : "Internal Server Error";
-        return NextResponse.json({ error: message, fallback: true }, { status: 500 });
+        // Any error - use browser fallback
+        return NextResponse.json({
+            error: "TTS service unavailable. Using browser voice.",
+            fallback: true
+        }, { status: 503 });
     }
 }

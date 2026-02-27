@@ -1,4 +1,3 @@
-import { openai } from "@/lib/openai";
 import { NextResponse } from "next/server";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB limit
@@ -17,22 +16,41 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Audio file too large. Maximum 25MB allowed" }, { status: 400 });
         }
 
-        // Convert Blob to File for OpenAI SDK
-        const audioFile = new File([file], "audio.wav", { type: "audio/wav" });
+        const apiKey = process.env.GROQ_API_KEY;
+        if (!apiKey) {
+            console.error("STT Error: GROQ_API_KEY is missing");
+            return NextResponse.json({ error: "Speech recognition service unavailable" }, { status: 503 });
+        }
 
-        const transcription = await openai.audio.transcriptions.create({
-            file: audioFile,
-            model: "whisper-1",
-            language: "en",
+        // Create form data for Groq API
+        const groqFormData = new FormData();
+        groqFormData.append("file", file, "audio.wav");
+        groqFormData.append("model", "whisper-large-v3");
+        groqFormData.append("language", "en");
+
+        const response = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+            },
+            body: groqFormData,
         });
 
-        if (!transcription.text || transcription.text.trim() === '') {
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: "Unknown error" }));
+            console.error("Groq STT Error:", response.status, error);
+            return NextResponse.json({ error: "Failed to transcribe audio" }, { status: 500 });
+        }
+
+        const result = await response.json();
+
+        if (!result.text || result.text.trim() === '') {
             return NextResponse.json({ error: "Could not understand audio. Please try again." }, { status: 422 });
         }
 
-        return NextResponse.json({ text: transcription.text.trim() });
+        return NextResponse.json({ text: result.text.trim() });
     } catch (error) {
-        console.error("OpenAI STT Error:", error);
+        console.error("STT Server Error:", error);
         return NextResponse.json({ error: "Failed to transcribe audio" }, { status: 500 });
     }
 }
