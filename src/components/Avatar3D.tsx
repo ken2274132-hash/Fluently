@@ -326,7 +326,7 @@ export default function Avatar3D({
             </div>
 
             <Canvas
-                camera={{ position: [0, 1.58, 0.75], fov: 20 }}
+                camera={{ position: [0, 1.55, 1.3], fov: 28 }}
                 style={{ background: 'transparent' }}
                 onError={() => setHasError(true)}
             >
@@ -345,7 +345,7 @@ export default function Avatar3D({
                 </Suspense>
 
                 <OrbitControls
-                    target={[0, 1.55, 0]}
+                    target={[0, 1.5, 0]}
                     enableZoom={false}
                     enablePan={false}
                     minPolarAngle={Math.PI / 2.2}

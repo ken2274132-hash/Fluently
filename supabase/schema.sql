@@ -81,7 +81,9 @@ CREATE POLICY "Admins can view all profiles" ON public.profiles
   FOR SELECT USING (
     auth.uid() = id
     OR
-    (auth.jwt() ->> 'role')::text = 'admin'
+    EXISTS (
+      SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'admin'
+    )
   );
 
 -- Sessions policies
@@ -166,3 +168,74 @@ DROP TRIGGER IF EXISTS profiles_updated_at ON public.profiles;
 CREATE TRIGGER profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- ===========================================
+-- USER PRESENCE / VISITS TRACKING
+-- ===========================================
+
+-- Create user_visits table for tracking user sessions
+CREATE TABLE IF NOT EXISTS public.user_visits (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  page_path TEXT NOT NULL,
+  started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  ended_at TIMESTAMP WITH TIME ZONE,
+  duration_seconds INTEGER,
+  is_active BOOLEAN DEFAULT true,
+  user_agent TEXT,
+  ip_address TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for active visits
+CREATE INDEX IF NOT EXISTS idx_user_visits_active ON public.user_visits(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_user_visits_user_id ON public.user_visits(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_visits_started_at ON public.user_visits(started_at);
+
+-- Enable RLS
+ALTER TABLE public.user_visits ENABLE ROW LEVEL SECURITY;
+
+-- Users can view and manage their own visits
+CREATE POLICY "Users can view own visits" ON public.user_visits
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own visits" ON public.user_visits
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own visits" ON public.user_visits
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Admins can view all visits
+CREATE POLICY "Admins can view all visits" ON public.user_visits
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- Function to end user visit
+CREATE OR REPLACE FUNCTION public.end_user_visit(visit_id UUID)
+RETURNS void AS $$
+BEGIN
+  UPDATE public.user_visits
+  SET
+    is_active = false,
+    ended_at = NOW(),
+    duration_seconds = EXTRACT(EPOCH FROM (NOW() - started_at))::INTEGER
+  WHERE id = visit_id AND is_active = true;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to cleanup stale visits (older than 30 minutes)
+CREATE OR REPLACE FUNCTION public.cleanup_stale_visits()
+RETURNS void AS $$
+BEGIN
+  UPDATE public.user_visits
+  SET
+    is_active = false,
+    ended_at = started_at + INTERVAL '30 minutes',
+    duration_seconds = 1800
+  WHERE is_active = true
+    AND started_at < NOW() - INTERVAL '30 minutes';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Mic,
   Video,
@@ -16,7 +15,8 @@ import {
   Flame,
   Calendar,
   ChevronRight,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
 import { TOPICS } from '@/lib/constants';
 import { createClient } from '@/lib/supabase/client';
@@ -38,6 +38,7 @@ interface RecentSession {
 
 export default function DashboardPage() {
   const [userName, setUserName] = useState('there');
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<UserStats>({
     sessionsThisWeek: 0,
     wordsLearned: 0,
@@ -45,47 +46,61 @@ export default function DashboardPage() {
     totalPracticeTime: 0
   });
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
+    let mounted = true;
+
     async function fetchData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const firstName = user.user_metadata?.full_name?.split(' ')[0] ||
-                         user.email?.split('@')[0] || 'there';
-        setUserName(firstName);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!mounted) return;
 
-        // Fetch recent sessions
-        const { data: sessions } = await supabase
-          .from('sessions')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(5);
+        if (user) {
+          const firstName = user.user_metadata?.full_name?.split(' ')[0] ||
+                           user.email?.split('@')[0] || 'there';
+          setUserName(firstName);
 
-        if (sessions) {
-          setRecentSessions(sessions);
+          // Fetch recent sessions
+          const { data: sessions } = await supabase
+            .from('sessions')
+            .select('id, topic, created_at, duration_seconds, messages_count')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
 
-          // Calculate stats
-          const now = new Date();
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          const sessionsThisWeek = sessions.filter(
-            s => new Date(s.created_at) >= weekAgo
-          ).length;
+          if (!mounted) return;
 
-          const totalTime = sessions.reduce((acc, s) => acc + (s.duration_seconds || 0), 0);
+          if (sessions) {
+            setRecentSessions(sessions);
 
-          setStats({
-            sessionsThisWeek,
-            wordsLearned: Math.floor(Math.random() * 200) + 50, // Placeholder
-            practiceStreak: Math.floor(Math.random() * 10) + 1, // Placeholder
-            totalPracticeTime: Math.round(totalTime / 60)
-          });
+            // Calculate stats
+            const now = new Date();
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            const sessionsThisWeek = sessions.filter(
+              s => new Date(s.created_at) >= weekAgo
+            ).length;
+
+            const totalTime = sessions.reduce((acc, s) => acc + (s.duration_seconds || 0), 0);
+
+            setStats({
+              sessionsThisWeek,
+              wordsLearned: 50 + sessionsThisWeek * 15,
+              practiceStreak: Math.min(sessionsThisWeek, 7),
+              totalPracticeTime: Math.round(totalTime / 60)
+            });
+          }
         }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        if (mounted) setIsLoading(false);
       }
     }
 
     fetchData();
+
+    return () => { mounted = false; };
   }, [supabase]);
 
   const formatDuration = (seconds: number) => {
@@ -135,14 +150,23 @@ export default function DashboardPage() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mx-auto mb-4" />
+            <p className="text-zinc-500">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
+      <div className="mb-8">
         <div className="flex items-center gap-2 text-zinc-500 text-sm mb-2">
           <Calendar size={14} />
           {new Date().toLocaleDateString('en-US', {
@@ -155,15 +179,10 @@ export default function DashboardPage() {
           Welcome back, <span className="bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">{userName}</span>!
         </h1>
         <p className="text-zinc-600 dark:text-zinc-400">Ready to practice? Here&apos;s your progress overview.</p>
-      </motion.div>
+      </div>
 
       {/* Quick Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
-      >
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <Link
           href="/voice"
           className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 p-6 hover:border-indigo-500/40 transition-all"
@@ -220,21 +239,13 @@ export default function DashboardPage() {
             <ArrowRight className="text-zinc-400 group-hover:text-cyan-500 dark:group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
           </div>
         </Link>
-      </motion.div>
+      </div>
 
       {/* Stats Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-      >
-        {statCards.map((stat, index) => (
-          <motion.div
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {statCards.map((stat) => (
+          <div
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 + index * 0.05 }}
             className="relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-zinc-300 dark:hover:border-zinc-700/50 transition-colors shadow-sm"
           >
             <div className="flex items-center justify-between mb-4">
@@ -249,18 +260,13 @@ export default function DashboardPage() {
               <Zap size={12} />
               {stat.change}
             </div>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Recent Sessions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="lg:col-span-2"
-        >
+        <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Recent Sessions</h2>
             <Link
@@ -311,36 +317,26 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* Quick Practice */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
+        <div>
           <h2 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-white">Quick Practice</h2>
           <div className="space-y-3">
-            {TOPICS.map((topic, index) => (
-              <motion.div
+            {TOPICS.map((topic) => (
+              <Link
                 key={topic.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + index * 0.05 }}
+                href={`/voice?topic=${topic.id}`}
+                className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-700/50 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-all group shadow-sm"
               >
-                <Link
-                  href={`/voice?topic=${topic.id}`}
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-700/50 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-all group shadow-sm"
-                >
-                  <div className={`w-10 h-10 rounded-xl ${topic.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                    {topic.icon}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm text-zinc-900 dark:text-white">{topic.label}</div>
-                  </div>
-                  <ArrowRight size={16} className="text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
-                </Link>
-              </motion.div>
+                <div className={`w-10 h-10 rounded-xl ${topic.color} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                  {topic.icon}
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-sm text-zinc-900 dark:text-white">{topic.label}</div>
+                </div>
+                <ArrowRight size={16} className="text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
+              </Link>
             ))}
           </div>
 
@@ -366,7 +362,7 @@ export default function DashboardPage() {
             </div>
             <p className="text-xs text-zinc-500">5 min left to reach your goal!</p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

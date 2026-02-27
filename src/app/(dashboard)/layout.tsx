@@ -18,11 +18,13 @@ import {
   Search,
   Command,
   Sun,
-  Moon
+  Moon,
+  Activity
 } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/constants';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { usePresenceTracking } from '@/hooks/usePresenceTracking';
 
 const sidebarLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,6 +37,7 @@ const adminLinks = [
   { href: '/admin', label: 'Admin Panel', icon: Shield },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/live', label: 'Live Users', icon: Activity },
 ];
 
 interface UserProfile {
@@ -53,6 +56,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
   const { resolvedTheme, setTheme } = useTheme();
+
+  // Track user presence for admin live dashboard
+  usePresenceTracking();
 
   useEffect(() => {
     async function getUser() {
