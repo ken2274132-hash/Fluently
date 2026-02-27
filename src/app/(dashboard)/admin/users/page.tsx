@@ -115,8 +115,8 @@ export default function AdminUsersPage() {
         </div>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex flex-col gap-4 mb-6">
+        <div className="relative">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
@@ -126,12 +126,12 @@ export default function AdminUsersPage() {
             className="w-full pl-11 pr-4 py-3 rounded-xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 text-zinc-900 dark:text-white placeholder-zinc-500 focus:border-indigo-500/50 focus:outline-none transition-colors"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(['all', 'free', 'pro', 'team'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors ${
                 filter === f ? 'bg-indigo-500 text-white' : 'bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
@@ -142,10 +142,10 @@ export default function AdminUsersPage() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 overflow-hidden shadow-sm">
-        <div className="hidden sm:grid grid-cols-12 gap-4 p-4 border-b border-zinc-200 dark:border-zinc-800/50 text-sm font-medium text-zinc-500">
-          <div className="col-span-4">User</div>
-          <div className="col-span-2">Role</div>
-          <div className="col-span-2">Plan</div>
+        <div className="grid grid-cols-12 gap-4 p-4 border-b border-zinc-200 dark:border-zinc-800/50 text-xs sm:text-sm font-medium text-zinc-500">
+          <div className="col-span-5 sm:col-span-4">User</div>
+          <div className="hidden sm:block col-span-2">Role</div>
+          <div className="col-span-3 sm:col-span-2">Plan</div>
           <div className="col-span-2">Joined</div>
           <div className="col-span-2 text-right">Actions</div>
         </div>
@@ -154,17 +154,19 @@ export default function AdminUsersPage() {
           {paginatedUsers.length > 0 ? (
             paginatedUsers.map((user) => (
               <div key={user.id} className="p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                <div className="sm:grid sm:grid-cols-12 sm:gap-4 sm:items-center flex flex-col gap-3">
-                  <div className="col-span-4 flex items-center gap-3">
+                <div className="grid grid-cols-12 gap-4 items-center">
+                  {/* User Info - Always visible */}
+                  <div className="col-span-5 sm:col-span-4 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-medium shrink-0">
-                      {user.full_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
+                      {user.full_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
                     </div>
                     <div className="min-w-0">
                       <div className="font-medium truncate text-zinc-900 dark:text-white">{user.full_name || 'No name'}</div>
-                      <div className="text-sm text-zinc-500 truncate">{user.email}</div>
+                      <div className="text-xs sm:text-sm text-zinc-500 truncate">{user.email}</div>
                     </div>
                   </div>
-                  <div className="col-span-2">
+                  {/* Role - Hidden on mobile */}
+                  <div className="hidden sm:block col-span-2">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${
                       user.role === 'admin' ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
                     }`}>
@@ -172,7 +174,8 @@ export default function AdminUsersPage() {
                       {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                     </span>
                   </div>
-                  <div className="col-span-2">
+                  {/* Plan */}
+                  <div className="col-span-3 sm:col-span-2">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${
                       user.subscription_tier === 'pro' ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400' :
                       user.subscription_tier === 'team' ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-500'
@@ -181,7 +184,9 @@ export default function AdminUsersPage() {
                       {user.subscription_tier?.toUpperCase() || 'FREE'}
                     </span>
                   </div>
-                  <div className="col-span-2 text-sm text-zinc-500 dark:text-zinc-400">{formatDate(user.created_at)}</div>
+                  {/* Date */}
+                  <div className="col-span-2 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">{formatDate(user.created_at)}</div>
+                  {/* Actions */}
                   <div className="col-span-2 flex justify-end relative">
                     <button onClick={() => setSelectedUser(selectedUser === user.id ? null : user.id)} className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                       <MoreHorizontal size={18} className="text-zinc-500 dark:text-zinc-400" />
