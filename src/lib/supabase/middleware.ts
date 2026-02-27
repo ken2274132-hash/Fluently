@@ -64,7 +64,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Protected routes
-  const protectedRoutes = ['/dashboard', '/settings', '/profile', '/admin'];
+  const protectedRoutes = ['/dashboard', '/settings', '/profile', '/admin', '/voice', '/voice-avatar', '/video'];
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
