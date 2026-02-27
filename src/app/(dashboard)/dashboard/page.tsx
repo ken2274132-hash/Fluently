@@ -15,8 +15,7 @@ import {
   Flame,
   Calendar,
   ChevronRight,
-  Zap,
-  Loader2
+  Zap
 } from 'lucide-react';
 import { TOPICS } from '@/lib/constants';
 import { createClient } from '@/lib/supabase/client';
@@ -36,16 +35,37 @@ interface RecentSession {
   messages_count: number;
 }
 
+// Cache key for localStorage
+const DASHBOARD_CACHE_KEY = 'dashboard_cache';
+
+function getCachedData() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const cached = localStorage.getItem(DASHBOARD_CACHE_KEY);
+    if (cached) {
+      const data = JSON.parse(cached);
+      // Cache valid for 5 minutes
+      if (Date.now() - data.timestamp < 5 * 60 * 1000) {
+        return data;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export default function DashboardPage() {
-  const [userName, setUserName] = useState('there');
-  const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState<UserStats>({
+  const cached = getCachedData();
+  const [userName, setUserName] = useState(cached?.userName || 'there');
+  const [stats, setStats] = useState<UserStats>(cached?.stats || {
     sessionsThisWeek: 0,
     wordsLearned: 0,
     practiceStreak: 0,
     totalPracticeTime: 0
   });
-  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
+  const [recentSessions, setRecentSessions] = useState<RecentSession[]>(cached?.recentSessions || []);
+  const [sessionsLoading, setSessionsLoading] = useState(!cached?.recentSessions);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
@@ -83,18 +103,31 @@ export default function DashboardPage() {
 
             const totalTime = sessions.reduce((acc, s) => acc + (s.duration_seconds || 0), 0);
 
-            setStats({
+            const newStats = {
               sessionsThisWeek,
               wordsLearned: 50 + sessionsThisWeek * 15,
               practiceStreak: Math.min(sessionsThisWeek, 7),
               totalPracticeTime: Math.round(totalTime / 60)
-            });
+            };
+            setStats(newStats);
+
+            // Cache the data
+            try {
+              localStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify({
+                userName: firstName,
+                stats: newStats,
+                recentSessions: sessions,
+                timestamp: Date.now()
+              }));
+            } catch {
+              // Ignore cache errors
+            }
           }
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
-        if (mounted) setIsLoading(false);
+        if (mounted) setSessionsLoading(false);
       }
     }
 
@@ -149,19 +182,6 @@ export default function DashboardPage() {
       gradient: 'from-cyan-500 to-blue-500'
     },
   ];
-
-  if (isLoading) {
-    return (
-      <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mx-auto mb-4" />
-            <p className="text-zinc-500">Loading dashboard...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
@@ -277,7 +297,19 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 divide-y divide-zinc-200 dark:divide-zinc-800/50 overflow-hidden shadow-sm">
-            {recentSessions.length > 0 ? (
+            {sessionsLoading ? (
+              <div className="p-4 space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-4 animate-pulse">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="flex-1">
+                      <div className="h-4 w-32 bg-zinc-200 dark:bg-zinc-800 rounded mb-2" />
+                      <div className="h-3 w-48 bg-zinc-100 dark:bg-zinc-800/50 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : recentSessions.length > 0 ? (
               recentSessions.map((session) => (
                 <div key={session.id} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
                   <div className="flex items-center gap-4">

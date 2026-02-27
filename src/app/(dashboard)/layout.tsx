@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   Sparkles,
   LayoutDashboard,
@@ -49,49 +49,93 @@ interface UserProfile {
   subscription_tier: 'free' | 'pro' | 'team';
 }
 
+const USER_CACHE_KEY = 'layout_user_cache';
+
+function getCachedUser(): UserProfile | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const cached = localStorage.getItem(USER_CACHE_KEY);
+    if (cached) {
+      const data = JSON.parse(cached);
+      // Cache valid for 10 minutes
+      if (Date.now() - data.timestamp < 10 * 60 * 1000) {
+        return data.user;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const cachedUser = getCachedUser();
+  const [user, setUser] = useState<UserProfile | null>(cachedUser);
+  const [loading, setLoading] = useState(!cachedUser);
+  const supabase = useMemo(() => createClient(), []);
   const { resolvedTheme, setTheme } = useTheme();
 
   // Track user presence for admin live dashboard
   usePresenceTracking();
 
   useEffect(() => {
+    let mounted = true;
+
     async function getUser() {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
 
-      if (!authUser) {
-        router.push('/login');
-        return;
+        if (!authUser) {
+          router.push('/login');
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        if (!mounted) return;
+
+        let userProfile: UserProfile;
+        if (profile) {
+          userProfile = profile as UserProfile;
+        } else {
+          // Create profile if it doesn't exist
+          userProfile = {
+            id: authUser.id,
+            email: authUser.email || '',
+            full_name: authUser.user_metadata?.full_name || null,
+            avatar_url: authUser.user_metadata?.avatar_url || null,
+            role: 'user',
+            subscription_tier: 'free'
+          };
+        }
+
+        setUser(userProfile);
+
+        // Cache the user
+        try {
+          localStorage.setItem(USER_CACHE_KEY, JSON.stringify({
+            user: userProfile,
+            timestamp: Date.now()
+          }));
+        } catch {
+          // Ignore cache errors
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      } finally {
+        if (mounted) setLoading(false);
       }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
-
-      if (profile) {
-        setUser(profile as UserProfile);
-      } else {
-        // Create profile if it doesn't exist
-        setUser({
-          id: authUser.id,
-          email: authUser.email || '',
-          full_name: authUser.user_metadata?.full_name || null,
-          avatar_url: authUser.user_metadata?.avatar_url || null,
-          role: 'user',
-          subscription_tier: 'free'
-        });
-      }
-      setLoading(false);
     }
 
     getUser();
+
+    return () => { mounted = false; };
   }, [supabase, router]);
 
   const handleSignOut = async () => {
