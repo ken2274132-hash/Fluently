@@ -34,8 +34,12 @@ export default function VideoAvatarPage() {
     useEffect(() => {
         return () => {
             if (sessionRef.current) {
-                sessionRef.current.stop().catch(console.error);
+                sessionRef.current.stop().catch(() => {});
                 sessionRef.current = null;
+            }
+            if (videoRef.current) {
+                videoRef.current.srcObject = null;
+                videoRef.current.src = '';
             }
         };
     }, []);

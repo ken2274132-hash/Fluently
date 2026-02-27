@@ -28,8 +28,14 @@ export default function VoicePage() {
     useEffect(() => {
         setIsClient(true);
         return () => {
-            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-            if (audioContextRef.current) audioContextRef.current.close();
+            // Quick cleanup - don't block navigation
+            try {
+                animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current);
+                mediaRecorderRef.current?.stream?.getTracks().forEach(track => track.stop());
+                audioRef.current?.pause();
+                window.speechSynthesis?.cancel();
+                audioContextRef.current?.close().catch(() => {});
+            } catch (e) {}
         };
     }, []);
 

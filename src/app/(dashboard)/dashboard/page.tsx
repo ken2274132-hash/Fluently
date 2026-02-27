@@ -162,7 +162,7 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="grid sm:grid-cols-2 gap-4 mb-8"
+        className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
       >
         <Link
           href="/voice"
@@ -182,17 +182,40 @@ export default function DashboardPage() {
         </Link>
 
         <Link
+          href="/voice-avatar"
+          className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 p-6 hover:border-emerald-500/40 transition-all"
+        >
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-500/20 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium">
+            FREE
+          </div>
+          <div className="relative flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
+              <Video size={28} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg mb-1 text-zinc-900 dark:text-white">3D Avatar</h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">Practice with animated 3D teacher</p>
+            </div>
+            <ArrowRight className="text-zinc-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
+          </div>
+        </Link>
+
+        <Link
           href="/video"
           className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 p-6 hover:border-cyan-500/40 transition-all"
         >
           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-medium">
+            IN TESTING
+          </div>
           <div className="relative flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/30">
               <Video size={28} className="text-white" />
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg mb-1 text-zinc-900 dark:text-white">Video Avatar</h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">Practice with AI video teacher</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">Realistic AI video teacher</p>
             </div>
             <ArrowRight className="text-zinc-400 group-hover:text-cyan-500 dark:group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
           </div>

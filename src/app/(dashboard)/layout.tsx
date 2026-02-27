@@ -113,9 +113,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isAdmin = user?.role === 'admin';
 
   return (
-    <div className="min-h-screen flex bg-[var(--background)]">
-      {/* Sidebar */}
-      <aside className="w-72 border-r border-zinc-200 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-950/50 hidden lg:flex flex-col">
+    <div className="h-screen flex bg-[var(--background)] overflow-hidden">
+      {/* Sidebar - Fixed */}
+      <aside className="w-72 h-screen border-r border-zinc-200 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-950/50 hidden lg:flex flex-col flex-shrink-0 overflow-y-auto">
         {/* Logo */}
         <div className="p-6 border-b border-zinc-200 dark:border-zinc-800/50">
           <Link href="/" className="flex items-center gap-3">
@@ -299,11 +299,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 lg:pt-0 pt-16 overflow-auto bg-[var(--background)]">
-        <div className="min-h-full">
-          {children}
-        </div>
+      {/* Main Content - Scrollable */}
+      <main className="flex-1 lg:pt-0 pt-16 overflow-y-auto bg-[var(--background)]">
+        {children}
       </main>
     </div>
   );

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sparkles, Twitter, Github, Linkedin } from 'lucide-react';
+import { Sparkles, Github, Linkedin, Facebook, Instagram } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/constants';
 
 const footerLinks = {
@@ -7,7 +7,7 @@ const footerLinks = {
     { label: 'Features', href: '/features' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Voice Practice', href: '/voice' },
-    { label: 'Video Avatar', href: '/voice?mode=video' },
+    { label: '3D Avatar', href: '/voice-avatar' },
   ],
   company: [
     { label: 'About', href: '/about' },
@@ -23,9 +23,10 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
-  { icon: Github, href: 'https://github.com', label: 'GitHub' },
-  { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
+  { icon: Github, href: 'https://github.com/hassanasghardeveloper-svg', label: 'GitHub' },
+  { icon: Linkedin, href: 'https://www.linkedin.com/in/hassan-asghar-974ab438a', label: 'LinkedIn' },
+  { icon: Facebook, href: 'https://www.facebook.com/hassan.asghar.763272/', label: 'Facebook' },
+  { icon: Instagram, href: 'https://www.instagram.com/hassan_asghar_1/', label: 'Instagram' },
 ];
 
 export default function Footer() {
