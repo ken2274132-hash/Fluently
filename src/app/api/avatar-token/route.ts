@@ -15,17 +15,17 @@ export async function POST() {
         const res = await fetch("https://api.liveavatar.com/v1/sessions/token", {
             method: "POST",
             headers: {
-                "X-API-KEY": apiKey,
-                "accept": "application/json",
-                "content-type": "application/json",
+                "x-api-key": apiKey,
+                "Content-Type": "application/json",
             },
             body: JSON.stringify({
                 mode: "FULL",
                 avatar_id: avatarId,
                 is_sandbox: true,
                 avatar_persona: {
+                    avatar_id: avatarId,
                     voice_id: voiceId,
-                    context_id: contextId,
+                    ...(contextId ? { context_id: contextId } : {}),
                     language: "en"
                 },
                 quality: "low",

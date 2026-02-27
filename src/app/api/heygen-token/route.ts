@@ -10,9 +10,16 @@ export async function POST() {
         });
 
         if (!res.ok) {
-            const errorData = await res.json();
-            console.error("HeyGen Token Error:", errorData);
-            return NextResponse.json({ error: errorData.message || "Failed to create token" }, { status: res.status });
+            const errorText = await res.text();
+            let errorMessage = "Failed to create HeyGen token";
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.message || errorData.error || errorMessage;
+            } catch {
+                errorMessage = errorText || errorMessage;
+            }
+            console.error("HeyGen Token Error:", errorMessage);
+            return NextResponse.json({ error: errorMessage }, { status: res.status });
         }
 
         const data = await res.json();

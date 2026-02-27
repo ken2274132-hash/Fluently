@@ -313,10 +313,10 @@ export default function VoicePage() {
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 pt-24 pb-12">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-8 h-full">
+            <main className="flex-1 pt-20 sm:pt-24 pb-6 sm:pb-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col lg:flex-row gap-6 sm:gap-8 h-full">
                     {/* Left: Voice Orb Section */}
-                    <div className="flex-1 flex flex-col items-center justify-center min-h-[500px]">
+                    <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] sm:min-h-[500px]">
                         {/* Voice Orb */}
                         <motion.div
                             className="relative cursor-pointer select-none touch-manipulation"
@@ -390,29 +390,29 @@ export default function VoicePage() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
-                                    className="mt-12 w-full max-w-md"
+                                    className="mt-8 sm:mt-12 w-full max-w-md px-2 sm:px-0"
                                 >
-                                    <div className="text-center mb-6">
-                                        <h2 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-white">Choose Your Topic</h2>
-                                        <p className="text-sm text-zinc-500 dark:text-zinc-400">Select a conversation scenario to begin</p>
+                                    <div className="text-center mb-4 sm:mb-6">
+                                        <h2 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-zinc-900 dark:text-white">Choose Your Topic</h2>
+                                        <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">Select a conversation scenario to begin</p>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
                                         {TOPICS.map(topic => (
                                             <button
                                                 key={topic.id}
                                                 onClick={() => setSelectedTopic(topic)}
-                                                className={`p-4 rounded-xl text-left transition-all ${
+                                                className={`p-3 sm:p-4 rounded-xl text-left transition-all ${
                                                     selectedTopic.id === topic.id
                                                         ? 'bg-indigo-500/10 border-2 border-indigo-500/50'
                                                         : 'bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
                                                 }`}
                                             >
-                                                <div className="flex items-center gap-2 mb-2">
+                                                <div className="flex items-center gap-2">
                                                     <span className={selectedTopic.id === topic.id ? 'text-indigo-500' : 'text-zinc-500 dark:text-zinc-400'}>
                                                         {topic.icon}
                                                     </span>
-                                                    <span className={`text-sm font-medium ${
+                                                    <span className={`text-xs sm:text-sm font-medium ${
                                                         selectedTopic.id === topic.id ? 'text-indigo-500' : 'text-zinc-900 dark:text-white'
                                                     }`}>
                                                         {topic.label}
@@ -424,10 +424,10 @@ export default function VoicePage() {
 
                                     <button
                                         onClick={handleStartSession}
-                                        className="btn-primary w-full justify-center py-4"
+                                        className="btn-primary w-full justify-center py-3 sm:py-4 text-sm sm:text-base"
                                     >
                                         <span>Start Voice Session</span>
-                                        <Send size={18} />
+                                        <Send size={16} className="sm:w-[18px] sm:h-[18px]" />
                                     </button>
                                 </motion.div>
                             ) : (
@@ -451,7 +451,7 @@ export default function VoicePage() {
                     </div>
 
                     {/* Right: Conversation Log */}
-                    <div className="w-full lg:w-96 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 flex flex-col overflow-hidden h-[600px] lg:sticky lg:top-24 shadow-sm">
+                    <div className="w-full lg:w-96 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 flex flex-col overflow-hidden h-[400px] sm:h-[600px] lg:sticky lg:top-24 shadow-sm">
                         <div className="p-4 border-b border-zinc-200 dark:border-zinc-800/50 flex items-center justify-between">
                             <div>
                                 <h3 className="font-semibold text-zinc-900 dark:text-white">Conversation</h3>

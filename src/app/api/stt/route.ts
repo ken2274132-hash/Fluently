@@ -1,4 +1,4 @@
-import { groq } from "@/lib/groq";
+import { openai } from "@/lib/openai";
 import { NextResponse } from "next/server";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB limit
@@ -17,18 +17,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Audio file too large. Maximum 25MB allowed" }, { status: 400 });
         }
 
-        // Validate file type
-        const validTypes = ['audio/wav', 'audio/webm', 'audio/mp3', 'audio/mpeg', 'audio/ogg'];
-        if (!validTypes.some(type => file.type.includes(type.split('/')[1]))) {
-            console.warn("Unexpected audio type:", file.type, "- proceeding anyway");
-        }
-
-        // Convert Blob to File for Groq SDK
+        // Convert Blob to File for OpenAI SDK
         const audioFile = new File([file], "audio.wav", { type: "audio/wav" });
 
-        const transcription = await groq.audio.transcriptions.create({
+        const transcription = await openai.audio.transcriptions.create({
             file: audioFile,
-            model: "whisper-large-v3",
+            model: "whisper-1",
             language: "en",
         });
 
@@ -38,7 +32,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ text: transcription.text.trim() });
     } catch (error) {
-        console.error("STT Error:", error);
+        console.error("OpenAI STT Error:", error);
         return NextResponse.json({ error: "Failed to transcribe audio" }, { status: 500 });
     }
 }

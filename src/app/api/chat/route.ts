@@ -1,4 +1,4 @@
-import { groq } from "@/lib/groq";
+import { openai } from "@/lib/openai";
 import { NextResponse } from "next/server";
 
 interface ChatMessage {
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
                 .slice(-MAX_HISTORY_LENGTH);
         }
 
-        const completion = await groq.chat.completions.create({
+        const completion = await openai.chat.completions.create({
             messages: [
                 {
                     role: "system",
@@ -56,7 +56,7 @@ Key guidelines:
                 ...sanitizedHistory,
                 { role: "user", content: message },
             ],
-            model: "llama-3.3-70b-versatile",
+            model: "gpt-4o",
             temperature: 0.7,
             max_tokens: 256,
         });
@@ -64,7 +64,7 @@ Key guidelines:
         const response = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
         return NextResponse.json({ response });
     } catch (error) {
-        console.error("Groq Error:", error);
+        console.error("OpenAI Error:", error);
         return NextResponse.json({ error: "Failed to get response from AI" }, { status: 500 });
     }
 }

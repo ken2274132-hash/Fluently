@@ -459,47 +459,47 @@ export default function VoiceAvatarPage() {
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 pt-24 pb-12">
-                <div className="max-w-4xl mx-auto px-6">
+            <main className="flex-1 pt-20 sm:pt-24 pb-6 sm:pb-12">
+                <div className="max-w-4xl mx-auto px-3 sm:px-6">
                     {/* Avatar Container */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="relative aspect-video rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl"
+                        className="relative aspect-[3/4] sm:aspect-video rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl"
                     >
                         {status === 'idle' ? (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/30">
-                                    <User2 size={36} className="text-white" />
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 sm:p-6">
+                                <div className="w-16 sm:w-20 h-16 sm:h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-3 sm:mb-4 shadow-lg shadow-indigo-500/30">
+                                    <User2 size={28} className="sm:w-9 sm:h-9 text-white" />
                                 </div>
-                                <h2 className="text-xl font-semibold mb-1 text-zinc-900 dark:text-white">3D Avatar Teacher</h2>
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-5 text-center">
+                                <h2 className="text-lg sm:text-xl font-semibold mb-1 text-zinc-900 dark:text-white">3D Avatar Teacher</h2>
+                                <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mb-4 sm:mb-5 text-center">
                                     Speak naturally and get real-time responses
                                 </p>
 
                                 {/* Topic Selection - 2x2 Grid */}
-                                <div className="grid grid-cols-2 gap-2 mb-5 w-full max-w-xs">
+                                <div className="grid grid-cols-2 gap-2 mb-4 sm:mb-5 w-full max-w-[280px] sm:max-w-xs">
                                     {TOPICS.map(topic => (
                                         <button
                                             key={topic.id}
                                             onClick={() => setSelectedTopic(topic)}
-                                            className={`px-3 py-2.5 rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
+                                            className={`px-2 sm:px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
                                                 selectedTopic.id === topic.id
                                                     ? 'bg-indigo-500 text-white shadow-md'
                                                     : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700'
                                             }`}
                                         >
-                                            <span>{topic.icon}</span>
-                                            <span className="font-medium">{topic.label}</span>
+                                            <span className="text-sm sm:text-base">{topic.icon}</span>
+                                            <span className="font-medium truncate">{topic.label}</span>
                                         </button>
                                     ))}
                                 </div>
 
                                 <button
                                     onClick={startSession}
-                                    className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2"
+                                    className="px-6 sm:px-8 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm sm:text-base font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2"
                                 >
-                                    <User2 size={20} />
+                                    <User2 size={18} className="sm:w-5 sm:h-5" />
                                     Start Avatar Session
                                 </button>
                             </div>
@@ -559,7 +559,7 @@ export default function VoiceAvatarPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="mt-6 flex items-center justify-center gap-4"
+                            className="mt-4 sm:mt-6 flex items-center justify-center gap-3 sm:gap-4"
                         >
                             <button
                                 onMouseDown={startRecording}
@@ -568,7 +568,7 @@ export default function VoiceAvatarPage() {
                                 onTouchStart={startRecording}
                                 onTouchEnd={stopRecording}
                                 disabled={status === 'speaking'}
-                                className={`p-4 rounded-2xl transition-all ${
+                                className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all ${
                                     status === 'listening'
                                         ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                                         : status === 'speaking'
@@ -577,27 +577,27 @@ export default function VoiceAvatarPage() {
                                 }`}
                                 title="Hold to speak"
                             >
-                                {status === 'listening' ? <MicOff size={24} /> : <Mic size={24} />}
+                                {status === 'listening' ? <MicOff size={20} className="sm:w-6 sm:h-6" /> : <Mic size={20} className="sm:w-6 sm:h-6" />}
                             </button>
 
                             <button
                                 onClick={endSession}
-                                className="p-4 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition-all"
+                                className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-red-500 text-white hover:bg-red-600 transition-all"
                                 title="End session"
                             >
-                                <Phone size={24} className="rotate-[135deg]" />
+                                <Phone size={20} className="sm:w-6 sm:h-6 rotate-[135deg]" />
                             </button>
 
                             <button
                                 onClick={toggleMute}
-                                className={`p-4 rounded-2xl transition-all ${
+                                className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all ${
                                     isMuted
                                         ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
                                         : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                                 }`}
                                 title={isMuted ? 'Unmute' : 'Mute'}
                             >
-                                {isMuted ? <MicOff size={24} /> : <Volume2 size={24} />}
+                                {isMuted ? <MicOff size={20} className="sm:w-6 sm:h-6" /> : <Volume2 size={20} className="sm:w-6 sm:h-6" />}
                             </button>
                         </motion.div>
                     )}
@@ -608,28 +608,28 @@ export default function VoiceAvatarPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="mt-8 grid sm:grid-cols-3 gap-4"
+                            className="mt-4 sm:mt-8 grid grid-cols-3 gap-2 sm:gap-4"
                         >
-                            <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
-                                <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-3">
-                                    <Mic size={20} className="text-indigo-500" />
+                            <div className="p-2.5 sm:p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
+                                <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-2 sm:mb-3">
+                                    <Mic size={16} className="sm:w-5 sm:h-5 text-indigo-500" />
                                 </div>
-                                <h3 className="font-medium mb-1 text-zinc-900 dark:text-white">Speak Naturally</h3>
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400">Hold the mic and talk - the AI will understand</p>
+                                <h3 className="font-medium text-xs sm:text-base mb-0.5 sm:mb-1 text-zinc-900 dark:text-white">Speak</h3>
+                                <p className="text-[10px] sm:text-sm text-zinc-500 dark:text-zinc-400 hidden sm:block">Hold the mic and talk</p>
                             </div>
-                            <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
-                                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-3">
-                                    <User2 size={20} className="text-purple-500" />
+                            <div className="p-2.5 sm:p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
+                                <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-purple-500/10 flex items-center justify-center mb-2 sm:mb-3">
+                                    <User2 size={16} className="sm:w-5 sm:h-5 text-purple-500" />
                                 </div>
-                                <h3 className="font-medium mb-1 text-zinc-900 dark:text-white">3D Avatar</h3>
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400">Watch Sara respond with natural lip sync</p>
+                                <h3 className="font-medium text-xs sm:text-base mb-0.5 sm:mb-1 text-zinc-900 dark:text-white">3D Avatar</h3>
+                                <p className="text-[10px] sm:text-sm text-zinc-500 dark:text-zinc-400 hidden sm:block">Natural lip sync responses</p>
                             </div>
-                            <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
-                                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-3">
-                                    <Sparkles size={20} className="text-emerald-500" />
+                            <div className="p-2.5 sm:p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800">
+                                <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-2 sm:mb-3">
+                                    <Sparkles size={16} className="sm:w-5 sm:h-5 text-emerald-500" />
                                 </div>
-                                <h3 className="font-medium mb-1 text-zinc-900 dark:text-white">AI Feedback</h3>
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400">Get corrections and practice conversation</p>
+                                <h3 className="font-medium text-xs sm:text-base mb-0.5 sm:mb-1 text-zinc-900 dark:text-white">Feedback</h3>
+                                <p className="text-[10px] sm:text-sm text-zinc-500 dark:text-zinc-400 hidden sm:block">Get corrections & practice</p>
                             </div>
                         </motion.div>
                     )}
