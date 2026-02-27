@@ -34,8 +34,8 @@ export function usePresenceTracking() {
       if (!error && data) {
         visitIdRef.current = data.id;
       }
-    } catch (err) {
-      console.error('Error starting visit:', err);
+    } catch {
+      // Silent fail
     }
   }, [supabase, pathname]);
 
@@ -45,8 +45,8 @@ export function usePresenceTracking() {
     try {
       await supabase.rpc('end_user_visit', { visit_id: visitIdRef.current });
       visitIdRef.current = null;
-    } catch (err) {
-      console.error('Error ending visit:', err);
+    } catch {
+      // Silent fail
     }
   }, [supabase]);
 
@@ -61,8 +61,8 @@ export function usePresenceTracking() {
         .from('user_visits')
         .update({ page_path: pathname })
         .eq('id', visitIdRef.current);
-    } catch (err) {
-      console.error('Error updating visit path:', err);
+    } catch {
+      // Silent fail
     }
   }, [supabase, pathname, startVisit]);
 

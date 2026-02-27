@@ -126,8 +126,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         } catch {
           // Ignore cache errors
         }
-      } catch (error) {
-        console.error('Error fetching user:', error);
+      } catch {
+        // Silent fail - will redirect if needed
       } finally {
         if (mounted) setLoading(false);
       }

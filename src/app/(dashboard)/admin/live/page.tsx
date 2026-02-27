@@ -102,8 +102,7 @@ export default function AdminLivePage() {
 
       setLastUpdated(new Date());
       setIsConnected(true);
-    } catch (err) {
-      console.error('Error fetching active users:', err);
+    } catch {
       setIsConnected(false);
     } finally {
       setLoading(false);

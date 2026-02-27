@@ -63,8 +63,7 @@ export default function VoicePage() {
             setIsRecording(true);
             setStatus('Listening...');
             setupVisualizer(stream);
-        } catch (err) {
-            console.error('Mic access error:', err);
+        } catch {
             setStatus('Error accessing microphone');
         }
     };
@@ -124,7 +123,6 @@ export default function VoicePage() {
             const { response } = await chatRes.json();
             await playResponse(response);
         } catch (err: unknown) {
-            console.error('Greeting error:', err);
             const message = err instanceof Error ? err.message : 'Unknown error';
             setStatus('Error: ' + message);
         } finally {
@@ -156,7 +154,6 @@ export default function VoicePage() {
 
             await playResponse(response);
         } catch (err: unknown) {
-            console.error('Voice Mode Error:', err);
             const message = err instanceof Error ? err.message : 'Something went wrong';
             setStatus('Error: ' + message);
         } finally {
@@ -174,7 +171,6 @@ export default function VoicePage() {
             });
 
             if (!ttsRes.ok) {
-                console.warn('Falling back to local browser voice...');
                 speakLocal(text);
                 return;
             }
@@ -186,10 +182,7 @@ export default function VoicePage() {
 
             const audio = new Audio(audioUrl);
             audioRef.current = audio;
-            audio.onerror = () => {
-                console.warn('Retrying with local voice...');
-                speakLocal(text);
-            };
+            audio.onerror = () => speakLocal(text);
             audio.onplay = () => setIsPlaying(true);
             audio.onended = () => {
                 setIsPlaying(false);
@@ -197,8 +190,7 @@ export default function VoicePage() {
             };
 
             await audio.play();
-        } catch (err) {
-            console.error('Playback error:', err);
+        } catch {
             speakLocal(text);
         }
     };

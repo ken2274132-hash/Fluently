@@ -95,7 +95,6 @@ export default function VoiceAvatarPage() {
             setStatus('connected');
             setStatusMessage('Ready - speak to interact');
         } catch (err: unknown) {
-            console.error('Session error:', err);
             const message = err instanceof Error ? err.message : 'Unknown error';
             setStatus('error');
             setStatusMessage('Error: ' + message);
@@ -137,8 +136,7 @@ export default function VoiceAvatarPage() {
             setStatus('listening');
             setStatusMessage('Listening...');
             setupMicVisualizer(stream);
-        } catch (err) {
-            console.error('Mic access error:', err);
+        } catch {
             setStatusMessage('Error accessing microphone');
         }
     };
@@ -234,8 +232,8 @@ export default function VoiceAvatarPage() {
             };
 
             analyze();
-        } catch (err) {
-            console.error('Playback analyzer error:', err);
+        } catch {
+            // Silent fail
         }
     };
 
@@ -263,7 +261,6 @@ export default function VoiceAvatarPage() {
 
             await playResponse(response);
         } catch (err: unknown) {
-            console.error('Voice Mode Error:', err);
             const message = err instanceof Error ? err.message : 'Something went wrong';
             setStatusMessage('Error: ' + message);
             setStatus('connected');
@@ -282,7 +279,6 @@ export default function VoiceAvatarPage() {
             });
 
             if (!ttsRes.ok) {
-                console.warn('Falling back to local browser voice...');
                 speakLocal(text);
                 return;
             }
@@ -308,14 +304,10 @@ export default function VoiceAvatarPage() {
                 }
             };
 
-            audio.onerror = () => {
-                console.warn('Audio error, falling back to local voice');
-                speakLocal(text);
-            };
+            audio.onerror = () => speakLocal(text);
 
             await audio.play();
-        } catch (err) {
-            console.error('Playback error:', err);
+        } catch {
             speakLocal(text);
         }
     };

@@ -124,8 +124,8 @@ export default function DashboardPage() {
             }
           }
         }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+      } catch {
+        // Silent fail
       } finally {
         if (mounted) setSessionsLoading(false);
       }

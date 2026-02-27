@@ -52,7 +52,6 @@ export default function VideoAvatarPage() {
 
         try {
             // Step 1: Get session token from our API
-            console.log('[LiveAvatar] Step 1: Requesting session token...');
             const tokenRes = await fetch('/api/liveavatar-token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -65,13 +64,10 @@ export default function VideoAvatarPage() {
 
             if (!tokenRes.ok || tokenData.error) {
                 const errorMsg = tokenData.error || 'Failed to get session token';
-                console.error('[LiveAvatar] Token error:', errorMsg);
                 throw new Error(`Token Error: ${errorMsg}`);
             }
-            console.log('[LiveAvatar] Step 1 complete: Token received');
 
             // Step 2: Create LiveAvatarSession
-            console.log('[LiveAvatar] Step 2: Creating session...');
             setStatusMessage('Creating avatar session...');
 
             const session = new LiveAvatarSession(tokenData.token, {
@@ -81,7 +77,6 @@ export default function VideoAvatarPage() {
 
             // Set up event listeners
             session.on(SessionEvent.SESSION_STATE_CHANGED, (state: SessionState) => {
-                console.log('[LiveAvatar] Session state changed:', state);
                 if (state === SessionState.CONNECTED) {
                     setStatus('connected');
                     setStatusMessage('Connected! Speak to interact.');
@@ -92,74 +87,48 @@ export default function VideoAvatarPage() {
             });
 
             session.on(SessionEvent.SESSION_STREAM_READY, () => {
-                console.log('[LiveAvatar] Stream ready');
                 if (videoRef.current) {
                     session.attach(videoRef.current);
                     videoRef.current.play()
-                        .then(() => {
-                            console.log('[LiveAvatar] Video playing');
-                            setIsVideoLoading(false);
-                        })
-                        .catch(e => console.error('[LiveAvatar] Play error:', e));
+                        .then(() => setIsVideoLoading(false))
+                        .catch(() => {});
                 }
             });
 
-            session.on(SessionEvent.SESSION_DISCONNECTED, (reason) => {
-                console.log('[LiveAvatar] Session disconnected:', reason);
+            session.on(SessionEvent.SESSION_DISCONNECTED, () => {
                 setStatus('idle');
                 setStatusMessage('Session ended');
             });
 
             // Agent events
             session.on(AgentEventsEnum.AVATAR_SPEAK_STARTED, () => {
-                console.log('[LiveAvatar] Avatar started speaking');
                 setStatus('speaking');
                 setStatusMessage('AI is speaking...');
             });
 
             session.on(AgentEventsEnum.AVATAR_SPEAK_ENDED, () => {
-                console.log('[LiveAvatar] Avatar stopped speaking');
                 setStatus('connected');
                 setStatusMessage('Ready - speak to interact');
             });
 
             session.on(AgentEventsEnum.USER_SPEAK_STARTED, () => {
-                console.log('[LiveAvatar] User started speaking');
                 setStatus('listening');
                 setStatusMessage('Listening...');
             });
 
             session.on(AgentEventsEnum.USER_SPEAK_ENDED, () => {
-                console.log('[LiveAvatar] User stopped speaking');
                 setStatus('connected');
                 setStatusMessage('Processing...');
             });
 
-            session.on(AgentEventsEnum.USER_TRANSCRIPTION, (event) => {
-                console.log('[LiveAvatar] User said:', event.text);
-            });
-
-            session.on(AgentEventsEnum.AVATAR_TRANSCRIPTION, (event) => {
-                console.log('[LiveAvatar] Avatar said:', event.text);
-            });
-
             // Step 3: Start the session
-            console.log('[LiveAvatar] Step 3: Starting session...');
             setStatusMessage('Starting avatar...');
             await session.start();
-            console.log('[LiveAvatar] Step 3 complete: Session started');
 
             // Start listening for voice
             session.startListening();
 
         } catch (err: any) {
-            console.error('[LiveAvatar] Session error:', err);
-            console.error('[LiveAvatar] Error details:', {
-                name: err.name,
-                message: err.message,
-                stack: err.stack,
-            });
-
             let errorMessage = err.message || 'Failed to start session';
             if (err.message?.includes('402') || err.message?.includes('credits')) {
                 errorMessage = 'No credits remaining. Please add credits to your LiveAvatar account.';
@@ -179,8 +148,8 @@ export default function VideoAvatarPage() {
         if (sessionRef.current) {
             try {
                 await sessionRef.current.stop();
-            } catch (e) {
-                console.error('Error stopping session:', e);
+            } catch {
+                // Silent fail
             }
             sessionRef.current = null;
         }
@@ -204,8 +173,8 @@ export default function VideoAvatarPage() {
                     sessionRef.current.stopListening();
                 }
                 setIsMuted(!isMuted);
-            } catch (e) {
-                console.error('Mute toggle error:', e);
+            } catch {
+                // Silent fail
             }
         }
     };
