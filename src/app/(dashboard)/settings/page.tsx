@@ -13,7 +13,6 @@ import {
   ChevronRight,
   Sun,
   Moon,
-  Monitor,
   Check,
   X,
   AlertTriangle,
@@ -50,11 +49,10 @@ const settingsSections = [
   },
 ];
 
-const themeOptions = [
+const themeOptions: { value: 'dark' | 'light'; label: string; icon: typeof Moon }[] = [
   { value: 'dark', label: 'Dark', icon: Moon },
   { value: 'light', label: 'Light', icon: Sun },
-  { value: 'system', label: 'System', icon: Monitor },
-] as const;
+];
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -232,7 +230,7 @@ export default function SettingsPage() {
                 <div className="text-xs text-zinc-500">Choose your preferred theme</div>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {themeOptions.map((option) => (
                 <button
                   key={option.value}
