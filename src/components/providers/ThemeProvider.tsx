@@ -2,90 +2,49 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'dark' | 'light';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  resolvedTheme: 'dark' | 'light';
+  resolvedTheme: Theme;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-function getSystemTheme(): 'dark' | 'light' {
-  if (typeof window === 'undefined') return 'dark';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark';
-  const stored = localStorage.getItem('theme') as Theme | null;
-  return stored || 'dark';
-}
-
-function applyThemeToDOM(resolvedTheme: 'dark' | 'light') {
+function applyThemeToDOM(theme: Theme) {
   const root = document.documentElement;
   root.classList.remove('dark', 'light');
-  root.classList.add(resolvedTheme);
+  root.classList.add(theme);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   const [theme, setThemeState] = useState<Theme>('dark');
-  const [resolvedTheme, setResolvedTheme] = useState<'dark' | 'light'>('dark');
 
-  // Initialize theme on mount
+  // Initialize theme on mount - only from localStorage or default to dark
   useEffect(() => {
-    const initialTheme = getInitialTheme();
+    const stored = localStorage.getItem('theme') as Theme | null;
+    const initialTheme = stored === 'light' ? 'light' : 'dark';
     setThemeState(initialTheme);
-
-    const resolved = initialTheme === 'system' ? getSystemTheme() : initialTheme;
-    setResolvedTheme(resolved);
-    applyThemeToDOM(resolved);
-
+    applyThemeToDOM(initialTheme);
     setMounted(true);
   }, []);
 
-  // Handle theme changes
+  // Handle theme changes - ONLY when user clicks button
   useEffect(() => {
     if (!mounted) return;
-
-    const applyTheme = (newTheme: 'dark' | 'light') => {
-      setResolvedTheme(newTheme);
-      applyThemeToDOM(newTheme);
-    };
-
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      applyTheme(mediaQuery.matches ? 'dark' : 'light');
-
-      const handler = (e: MediaQueryListEvent) => {
-        applyTheme(e.matches ? 'dark' : 'light');
-      };
-
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
-    } else {
-      applyTheme(theme);
-    }
+    applyThemeToDOM(theme);
   }, [theme, mounted]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem('theme', newTheme);
+    applyThemeToDOM(newTheme);
   };
 
-  // Prevent flash by applying theme class immediately via script
-  useEffect(() => {
-    // Apply theme class on initial load before hydration completes
-    const stored = localStorage.getItem('theme') as Theme | null;
-    const initialTheme = stored || 'dark';
-    const resolved = initialTheme === 'system' ? getSystemTheme() : initialTheme;
-    applyThemeToDOM(resolved);
-  }, []);
-
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme: theme }}>
       {children}
     </ThemeContext.Provider>
   );

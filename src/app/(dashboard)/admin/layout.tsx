@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { createClient } from '@/lib/supabase/client';
 import { Shield, AlertCircle } from 'lucide-react';
 
 export default function AdminLayout({
@@ -12,39 +11,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const { user, profile, isLoading } = useAuth();
 
   useEffect(() => {
-    async function checkAdminRole() {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (error || !profile) {
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(profile.role === 'admin');
-      }
-      setLoading(false);
+    // Redirect if not logged in after loading completes
+    if (!isLoading && !user) {
+      router.push('/login');
     }
-
-    if (!authLoading) {
-      checkAdminRole();
-    }
-  }, [user, authLoading, supabase]);
+  }, [isLoading, user, router]);
 
   // Show loading state
-  if (authLoading || loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -57,11 +34,13 @@ export default function AdminLayout({
     );
   }
 
-  // Redirect if not logged in
+  // If no user after loading, don't render (redirect will happen)
   if (!user) {
-    router.push('/login');
     return null;
   }
+
+  // Check admin from profile
+  const isAdmin = profile?.role === 'admin';
 
   // Show access denied if not admin
   if (!isAdmin) {

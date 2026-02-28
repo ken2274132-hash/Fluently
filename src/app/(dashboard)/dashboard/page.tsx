@@ -261,6 +261,89 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {/* Learning Section */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-white">Learn & Practice</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <Link
+            href="/lessons"
+            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-blue-500/40 transition-all shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <BookOpen size={22} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors">Lessons</h3>
+                <p className="text-xs text-zinc-500">Grammar & Tenses</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/quiz"
+            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-purple-500/40 transition-all shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <Target size={22} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-purple-600 transition-colors">Quiz</h3>
+                <p className="text-xs text-zinc-500">Test Your Knowledge</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/flashcards"
+            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-orange-500/40 transition-all shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <Zap size={22} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors">Flashcards</h3>
+                <p className="text-xs text-zinc-500">Quick Review</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/grammar-checker"
+            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-green-500/40 transition-all shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shadow-lg shadow-green-500/20">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-green-600 transition-colors">Grammar Check</h3>
+                <p className="text-xs text-zinc-500">Check Your Writing</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
+            href="/progress"
+            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-red-500/40 transition-all shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+                <Flame size={22} className="text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-red-600 transition-colors">My Progress</h3>
+                <p className="text-xs text-zinc-500">Track Your Learning</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((stat) => (

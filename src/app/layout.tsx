@@ -28,6 +28,15 @@ export const metadata: Metadata = {
     "grammar",
   ],
   authors: [{ name: SITE_CONFIG.name }],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Sara English",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: SITE_CONFIG.name,
     description: SITE_CONFIG.tagline,
@@ -60,21 +69,34 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('theme') || 'dark';
-                  var resolved = theme;
-                  if (theme === 'system') {
-                    resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                  }
-                  document.documentElement.classList.add(resolved);
+                  var theme = localStorage.getItem('theme');
+                  // Only use dark or light - default to dark
+                  if (theme !== 'light') theme = 'dark';
+                  document.documentElement.classList.add(theme);
                 } catch (e) {
                   document.documentElement.classList.add('dark');
                 }
               })();
+
+              // Register Service Worker for PWA
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('SW registered:', registration.scope);
+                  }).catch(function(error) {
+                    console.log('SW registration failed:', error);
+                  });
+                });
+              }
             `,
           }}
         />

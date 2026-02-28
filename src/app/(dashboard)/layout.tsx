@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Sparkles,
   LayoutDashboard,
@@ -22,7 +22,7 @@ import {
   Activity
 } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/constants';
-import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/components/providers/AuthProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { usePresenceTracking } from '@/hooks/usePresenceTracking';
 
@@ -40,106 +40,29 @@ const adminLinks = [
   { href: '/admin/live', label: 'Live Users', icon: Activity },
 ];
 
-interface UserProfile {
-  id: string;
-  email: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  role: 'user' | 'admin';
-  subscription_tier: 'free' | 'pro' | 'team';
-}
-
-const USER_CACHE_KEY = 'layout_user_cache';
-
-function getCachedUser(): UserProfile | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const cached = localStorage.getItem(USER_CACHE_KEY);
-    if (cached) {
-      const data = JSON.parse(cached);
-      // Cache valid for 10 minutes
-      if (Date.now() - data.timestamp < 10 * 60 * 1000) {
-        return data.user;
-      }
-    }
-  } catch {
-    return null;
-  }
-  return null;
-}
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const cachedUser = getCachedUser();
-  const [user, setUser] = useState<UserProfile | null>(cachedUser);
-  const [loading, setLoading] = useState(!cachedUser);
-  const supabase = useMemo(() => createClient(), []);
+  const { user, profile, isLoading, signOut } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   // Track user presence for admin live dashboard
   usePresenceTracking();
 
   useEffect(() => {
-    let mounted = true;
+    setMounted(true);
+  }, []);
 
-    async function getUser() {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-
-        if (!authUser) {
-          router.push('/login');
-          return;
-        }
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authUser.id)
-          .single();
-
-        if (!mounted) return;
-
-        let userProfile: UserProfile;
-        if (profile) {
-          userProfile = profile as UserProfile;
-        } else {
-          // Create profile if it doesn't exist
-          userProfile = {
-            id: authUser.id,
-            email: authUser.email || '',
-            full_name: authUser.user_metadata?.full_name || null,
-            avatar_url: authUser.user_metadata?.avatar_url || null,
-            role: 'user',
-            subscription_tier: 'free'
-          };
-        }
-
-        setUser(userProfile);
-
-        // Cache the user
-        try {
-          localStorage.setItem(USER_CACHE_KEY, JSON.stringify({
-            user: userProfile,
-            timestamp: Date.now()
-          }));
-        } catch {
-          // Ignore cache errors
-        }
-      } catch {
-        // Silent fail - will redirect if needed
-      } finally {
-        if (mounted) setLoading(false);
-      }
+  useEffect(() => {
+    // Only redirect after initial loading is complete and we're sure there's no user
+    if (!isLoading && !user) {
+      router.push('/login');
     }
-
-    getUser();
-
-    return () => { mounted = false; };
-  }, [supabase, router]);
+  }, [isLoading, user, router]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     router.push('/');
   };
 
@@ -147,20 +70,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center animate-pulse">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
-          <div className="text-zinc-500 dark:text-zinc-500 text-sm">Loading...</div>
-        </div>
-      </div>
-    );
-  }
+  // Show skeleton UI instead of blocking loading screen
+  const isAdmin = profile?.role === 'admin';
+  const userEmail = profile?.email || user?.email || '';
+  const userName = profile?.full_name || user?.user_metadata?.full_name || 'User';
+  const subscriptionTier = profile?.subscription_tier || 'free';
 
-  const isAdmin = user?.role === 'admin';
+  // Don't render anything until mounted to avoid hydration issues
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="h-screen flex bg-[var(--background)] overflow-hidden">
@@ -176,13 +95,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="text-lg font-semibold text-zinc-900 dark:text-white">{SITE_CONFIG.name}</span>
               <div className="flex items-center gap-1">
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                  user?.subscription_tier === 'pro'
+                  subscriptionTier === 'pro'
                     ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
-                    : user?.subscription_tier === 'team'
+                    : subscriptionTier === 'team'
                     ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
                     : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-500'
                 }`}>
-                  {user?.subscription_tier?.toUpperCase() || 'FREE'}
+                  {subscriptionTier?.toUpperCase() || 'FREE'}
                 </span>
               </div>
             </div>
@@ -261,7 +180,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Upgrade Card */}
-        {user?.subscription_tier === 'free' && (
+        {subscriptionTier === 'free' && (
           <div className="p-4">
             <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/20 to-transparent rounded-full blur-2xl" />
@@ -288,11 +207,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800/50">
           <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-medium shadow-lg shadow-indigo-500/20">
-              {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+              {userName?.[0]?.toUpperCase() || userEmail?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-zinc-900 dark:text-white">{user?.full_name || 'User'}</p>
-              <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+              <p className="text-sm font-medium truncate text-zinc-900 dark:text-white">{userName}</p>
+              <p className="text-xs text-zinc-500 truncate">{userEmail}</p>
             </div>
             <button
               onClick={handleSignOut}
