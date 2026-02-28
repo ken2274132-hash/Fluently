@@ -64,14 +64,11 @@ export default function ProfilePage() {
   }, [supabase]);
 
   const handleSave = async () => {
-    console.log('Save button clicked');
     setIsLoading(true);
     setSaveError('');
 
     try {
-      console.log('Getting user...');
       const { data: { user }, error: userError } = await supabase.auth.getUser();
-      console.log('User:', user, 'Error:', userError);
 
       if (userError || !user) {
         setSaveError('You must be logged in to save your profile.');
@@ -79,8 +76,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // Use upsert for simplicity and reliability
-      console.log('Saving profile with upsert...');
       const { error } = await supabase
         .from('profiles')
         .upsert({
@@ -93,10 +88,8 @@ export default function ProfilePage() {
         }, {
           onConflict: 'id'
         });
-      console.log('Upsert result, error:', error);
 
       if (error) {
-        console.error('Error saving profile:', error);
         setSaveError(error.message || 'Failed to save profile. Please try again.');
         setIsLoading(false);
         return;
@@ -113,8 +106,7 @@ export default function ProfilePage() {
       setIsSaved(true);
       setIsLoading(false);
       setTimeout(() => setIsSaved(false), 2000);
-    } catch (err) {
-      console.error('Error saving profile:', err);
+    } catch {
       setSaveError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }
