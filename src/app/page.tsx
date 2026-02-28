@@ -124,11 +124,18 @@ export default function HomePage() {
             >
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[
+                    { initials: 'JD', gradient: 'from-blue-500 to-cyan-500' },
+                    { initials: 'MK', gradient: 'from-purple-500 to-pink-500' },
+                    { initials: 'AS', gradient: 'from-orange-500 to-red-500' },
+                    { initials: 'LW', gradient: 'from-emerald-500 to-teal-500' },
+                  ].map((user, i) => (
                     <div
                       key={i}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 border-2 border-white dark:border-zinc-900"
-                    />
+                      className={`w-10 h-10 rounded-full bg-gradient-to-br ${user.gradient} border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-xs font-bold shadow-md`}
+                    >
+                      {user.initials}
+                    </div>
                   ))}
                 </div>
                 <span className="text-zinc-600 dark:text-zinc-400">50K+ learners</span>
@@ -505,7 +512,9 @@ export default function HomePage() {
                   </div>
                   <p className="text-zinc-700 dark:text-zinc-300 mb-6 text-lg">&ldquo;{testimonial.content}&rdquo;</p>
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600" />
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-md">
+                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                    </div>
                     <div>
                       <div className="font-semibold text-zinc-900 dark:text-white">{testimonial.name}</div>
                       <div className="text-sm text-zinc-600 dark:text-zinc-500">{testimonial.role}</div>
