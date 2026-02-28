@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   User,
@@ -38,7 +38,7 @@ export default function ProfilePage() {
     englishLevel: 'intermediate',
     learningGoal: '',
   });
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const { refreshProfile } = useAuth();
 
   useEffect(() => {
@@ -64,23 +64,36 @@ export default function ProfilePage() {
   }, [supabase]);
 
   const handleSave = async () => {
+    console.log('Save button clicked');
     setIsLoading(true);
     setSaveError('');
 
-    const { data: { user } } = await supabase.auth.getUser();
+    try {
+      console.log('Getting user...');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('User:', user, 'Error:', userError);
 
-    if (user) {
+      if (userError || !user) {
+        setSaveError('You must be logged in to save your profile.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Use upsert for simplicity and reliability
+      console.log('Saving profile with upsert...');
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
-          email: user.email,
+          email: user.email || '',
           full_name: formData.name,
           native_language: formData.nativeLanguage,
           english_level: formData.englishLevel,
           learning_goal: formData.learningGoal,
-          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id'
         });
+      console.log('Upsert result, error:', error);
 
       if (error) {
         console.error('Error saving profile:', error);
@@ -89,21 +102,22 @@ export default function ProfilePage() {
         return;
       }
 
-      // Update auth user metadata
-      await supabase.auth.updateUser({
-        data: {
-          full_name: formData.name,
-        }
-      });
+      // Update auth user metadata (fire and forget)
+      supabase.auth.updateUser({
+        data: { full_name: formData.name }
+      }).catch(() => {});
 
-      // Refresh profile in context so navbar updates
-      await refreshProfile();
+      // Refresh profile in context
+      refreshProfile().catch(() => {});
 
       setIsSaved(true);
+      setIsLoading(false);
       setTimeout(() => setIsSaved(false), 2000);
+    } catch (err) {
+      console.error('Error saving profile:', err);
+      setSaveError('An unexpected error occurred. Please try again.');
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const memberSince = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -286,6 +300,7 @@ export default function ProfilePage() {
             </div>
           )}
           <button
+            type="button"
             onClick={handleSave}
             disabled={isLoading}
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium hover:from-indigo-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"

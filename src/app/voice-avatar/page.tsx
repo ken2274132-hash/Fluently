@@ -1,11 +1,19 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Mic, MicOff, Phone, Sparkles, Loader2, ArrowLeft, Volume2, User2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { TOPICS, SITE_CONFIG } from '@/lib/constants';
+import { useAuth } from '@/components/providers/AuthProvider';
 import dynamic from 'next/dynamic';
+
+interface UserProfile {
+    name?: string;
+    nativeLanguage?: string;
+    englishLevel?: string;
+    learningGoal?: string;
+}
 
 // Dynamically import 3D avatar to avoid SSR issues
 const Avatar3D = dynamic(() => import('@/components/Avatar3D'), {
@@ -29,6 +37,18 @@ export default function VoiceAvatarPage() {
     const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
     const [selectedTopic, setSelectedTopic] = useState(TOPICS[0]);
     const [audioLevel, setAudioLevel] = useState(0);
+    const { profile } = useAuth();
+
+    // Convert auth profile to chat profile format
+    const userProfile: UserProfile | null = useMemo(() => {
+        if (!profile) return null;
+        return {
+            name: profile.full_name || undefined,
+            nativeLanguage: profile.native_language,
+            englishLevel: profile.english_level,
+            learningGoal: profile.learning_goal || undefined
+        };
+    }, [profile]);
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
@@ -71,6 +91,7 @@ export default function VoiceAvatarPage() {
 
     useEffect(() => {
         setIsClient(true);
+
         return () => {
             cleanupResources();
         };
@@ -87,7 +108,8 @@ export default function VoiceAvatarPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: selectedTopic.prompt,
-                    history: []
+                    history: [],
+                    profile: userProfile
                 })
             });
             const { response } = await chatRes.json();
@@ -255,7 +277,7 @@ export default function VoiceAvatarPage() {
             const chatRes = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, history: messages.slice(-10) })
+                body: JSON.stringify({ message: text, history: messages.slice(-10), profile: userProfile })
             });
             const { response } = await chatRes.json();
 

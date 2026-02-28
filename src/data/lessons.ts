@@ -633,6 +633,57 @@ For, And, Nor, But, Or, Yet, So
 // ==================== QUIZZES ====================
 
 export const quizzes: Quiz[] = [
+    // Introduction to Tenses
+    {
+        id: "q0a",
+        lessonId: "tenses-intro",
+        question: "How many main tenses are there in English?",
+        options: ["Two", "Three", "Four", "Five"],
+        correctAnswer: 1,
+        explanation: "There are three main tenses: Past, Present, and Future."
+    },
+    {
+        id: "q0b",
+        lessonId: "tenses-intro",
+        question: "What are the four forms of each tense?",
+        options: [
+            "Active, Passive, Direct, Indirect",
+            "Simple, Compound, Complex, Mixed",
+            "Simple, Continuous, Perfect, Perfect Continuous",
+            "Past, Present, Future, Conditional"
+        ],
+        correctAnswer: 2,
+        explanation: "Each tense has four forms: Simple, Continuous, Perfect, and Perfect Continuous."
+    },
+    {
+        id: "q0c",
+        lessonId: "tenses-intro",
+        question: "Which is the correct simple sentence structure?",
+        options: [
+            "Object + Verb + Subject",
+            "Subject + Verb + Object",
+            "Verb + Subject + Object",
+            "Subject + Object + Verb"
+        ],
+        correctAnswer: 1,
+        explanation: "The basic sentence structure in English is Subject + Verb + Object (SVO)."
+    },
+    {
+        id: "q0d",
+        lessonId: "tenses-intro",
+        question: "Which of these is a singular subject?",
+        options: ["We", "They", "She", "You"],
+        correctAnswer: 2,
+        explanation: "She, he, and it are singular subjects. We, they, and you are plural."
+    },
+    {
+        id: "q0e",
+        lessonId: "tenses-intro",
+        question: "'Does he not eat apples?' is an example of:",
+        options: ["Affirmative", "Negative", "Interrogative", "Interrogative Negative"],
+        correctAnswer: 3,
+        explanation: "Interrogative Negative sentences are questions with negative form: Does he not...?"
+    },
     // Tenses Quizzes
     {
         id: "q1",
@@ -734,6 +785,39 @@ export const quizzes: Quiz[] = [
         options: ["in", "on", "at", "by"],
         correctAnswer: 2,
         explanation: "Use 'at' with specific times (at 3 o'clock, at noon)."
+    },
+    // Prepositions of Place
+    {
+        id: "q12a",
+        lessonId: "prepositions-place",
+        question: "The books are ___ the table.",
+        options: ["in", "on", "at", "by"],
+        correctAnswer: 1,
+        explanation: "Use 'on' for surfaces. The books are on the table (surface contact)."
+    },
+    {
+        id: "q12b",
+        lessonId: "prepositions-place",
+        question: "She lives ___ New York.",
+        options: ["on", "at", "in", "by"],
+        correctAnswer: 2,
+        explanation: "Use 'in' for cities, countries, and enclosed spaces."
+    },
+    {
+        id: "q12c",
+        lessonId: "prepositions-place",
+        question: "Meet me ___ the bus stop.",
+        options: ["in", "on", "at", "into"],
+        correctAnswer: 2,
+        explanation: "Use 'at' for specific points or locations like bus stop, door, entrance."
+    },
+    {
+        id: "q12d",
+        lessonId: "prepositions-place",
+        question: "The cat is hiding ___ the box.",
+        options: ["on", "at", "in", "over"],
+        correctAnswer: 2,
+        explanation: "Use 'in' for enclosed spaces with boundaries."
     },
     {
         id: "q13",

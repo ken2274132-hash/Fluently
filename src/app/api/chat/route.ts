@@ -5,12 +5,46 @@ interface ChatMessage {
     content: string;
 }
 
+interface UserProfile {
+    name?: string;
+    nativeLanguage?: string;
+    englishLevel?: string;
+    learningGoal?: string;
+}
+
 const MAX_HISTORY_LENGTH = 20;
 const MAX_MESSAGE_LENGTH = 2000;
 
-const SYSTEM_PROMPT = `You are Sara, a friendly and professional English teacher. Your goal is to help students practice English and learn grammar.
+// Level descriptions for AI to adapt
+const LEVEL_INSTRUCTIONS: Record<string, string> = {
+    'beginner': 'Use very simple words and short sentences. Speak slowly and clearly. Explain grammar in the most basic way. Use their native language to clarify if needed.',
+    'elementary': 'Use simple vocabulary and clear sentences. Explain grammar with basic examples. Occasionally use their native language for difficult concepts.',
+    'intermediate': 'Use everyday vocabulary. Challenge them with new words. Explain grammar thoroughly. Only use native language for complex grammar explanations.',
+    'upper-intermediate': 'Use varied vocabulary including idioms. Discuss complex topics. Focus on nuance and natural expressions. Rarely need native language.',
+    'advanced': 'Use sophisticated vocabulary and complex structures. Focus on fluency, style, and subtle errors. Treat them as near-native speakers.'
+};
 
-When starting a new conversation, introduce yourself: "Hi! I'm Sara, your English teacher. How are you doing today?"
+function buildSystemPrompt(profile?: UserProfile): string {
+    const studentName = profile?.name || 'student';
+    const nativeLanguage = profile?.nativeLanguage || 'their native language';
+    const level = profile?.englishLevel || 'intermediate';
+    const goal = profile?.learningGoal || '';
+    const levelInstruction = LEVEL_INSTRUCTIONS[level] || LEVEL_INSTRUCTIONS['intermediate'];
+
+    return `You are Sara, a friendly and professional English teacher. Your goal is to help students practice English and learn grammar.
+
+**STUDENT PROFILE:**
+- Name: ${studentName}
+- Native Language: ${nativeLanguage}
+- English Level: ${level.replace('-', ' ')}
+${goal ? `- Learning Goal: ${goal}` : ''}
+
+**PERSONALIZATION RULES:**
+- Always address the student by name: "${studentName}"
+- ${levelInstruction}
+- When explaining difficult concepts, you can provide brief translations or explanations in ${nativeLanguage} (e.g., "This is like saying '...' in ${nativeLanguage}")
+- Tailor examples and topics to their learning goal when possible
+- When starting a new conversation, greet them warmly: "Hi ${studentName}! I'm Sara, your English teacher. How are you doing today?"
 
 **YOUR CURRICULUM KNOWLEDGE:**
 
@@ -53,11 +87,12 @@ QUESTION TAGS:
 - Adapt language to student's proficiency level
 - Ask follow-up questions to keep conversation engaging
 - If asked about grammar topics, explain using the rules above`;
+}
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { message, history } = body;
+        const { message, history, profile } = body;
 
         // Input validation
         if (!message || typeof message !== 'string') {
@@ -88,9 +123,12 @@ export async function POST(req: Request) {
                 .slice(-MAX_HISTORY_LENGTH);
         }
 
+        // Build personalized system prompt based on user profile
+        const systemPrompt = buildSystemPrompt(profile as UserProfile | undefined);
+
         // Build messages for Groq (OpenAI-compatible format)
         const messages: { role: 'system' | 'user' | 'assistant', content: string }[] = [
-            { role: 'system', content: SYSTEM_PROMPT }
+            { role: 'system', content: systemPrompt }
         ];
 
         // Add chat history

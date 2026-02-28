@@ -46,6 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, profile, isLoading, signOut } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Track user presence for admin live dashboard
   usePresenceTracking();
@@ -55,11 +56,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   useEffect(() => {
-    // Only redirect after initial loading is complete and we're sure there's no user
-    if (!isLoading && !user) {
-      router.push('/login');
+    // Check for stored session before setting authChecked
+    const checkSession = async () => {
+      // Wait for Supabase to restore session from storage
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setAuthChecked(true);
+    };
+    checkSession();
+  }, []);
+
+  useEffect(() => {
+    // Only redirect after auth check is complete and loading is done
+    // Also don't redirect if we have a cached profile (session still restoring)
+    if (authChecked && !isLoading && !user && !profile) {
+      // Double check - give one more moment for auth to settle
+      const timer = setTimeout(() => {
+        if (!user && !profile) {
+          router.push('/login');
+        }
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [isLoading, user, router]);
+  }, [authChecked, isLoading, user, profile, router]);
 
   const handleSignOut = async () => {
     await signOut();

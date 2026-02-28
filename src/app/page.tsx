@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Play, Check, Star, Sparkles, Zap, Globe, Mic, LayoutDashboard } from 'lucide-react';
+import { ArrowRight, Play, Check, Star, Sparkles, Zap, Globe, Mic, LayoutDashboard, BookOpen, Brain, Layers, TrendingUp } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { SITE_CONFIG, FEATURES, PRICING_PLANS, TESTIMONIALS, STATS } from '@/lib/constants';
@@ -300,6 +300,94 @@ export default function HomePage() {
                   <div className="text-7xl font-bold text-zinc-200 dark:text-zinc-800 mb-4">{item.step}</div>
                   <h3 className="text-2xl font-semibold mb-3 text-zinc-900 dark:text-white">{item.title}</h3>
                   <p className="text-zinc-600 dark:text-zinc-400">{item.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Learning Tools Section */}
+        <section className="py-24 px-6">
+          <div className="max-w-6xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 mb-6">
+                <Brain size={16} />
+                Learning Tools
+              </span>
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-zinc-900 dark:text-white">
+                Learn your way with{' '}
+                <span className="bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                  interactive tools
+                </span>
+              </h2>
+              <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
+                Master English grammar with structured lessons, practice with quizzes, and memorize with flashcards.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  icon: <BookOpen size={28} />,
+                  title: 'Lessons',
+                  description: '19+ grammar lessons covering tenses, prepositions, articles, and more',
+                  color: 'from-blue-500 to-indigo-600',
+                  link: '/lessons',
+                  stats: '19 Lessons'
+                },
+                {
+                  icon: <Brain size={28} />,
+                  title: 'Quizzes',
+                  description: 'Test your knowledge with interactive quizzes after each lesson',
+                  color: 'from-indigo-500 to-purple-600',
+                  link: '/quiz',
+                  stats: '30+ Questions'
+                },
+                {
+                  icon: <Layers size={28} />,
+                  title: 'Flashcards',
+                  description: 'Memorize grammar rules and vocabulary with swipeable flashcards',
+                  color: 'from-purple-500 to-pink-600',
+                  link: '/flashcards',
+                  stats: '40+ Cards'
+                },
+                {
+                  icon: <TrendingUp size={28} />,
+                  title: 'Progress',
+                  description: 'Track your learning journey with detailed progress statistics',
+                  color: 'from-orange-500 to-red-600',
+                  link: '/progress',
+                  stats: 'Track Stats'
+                }
+              ].map((tool, index) => (
+                <motion.div
+                  key={tool.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Link
+                    href={tool.link}
+                    className="block p-6 rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all hover:shadow-lg dark:hover:shadow-none group"
+                  >
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                      <span className="text-white">{tool.icon}</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-white">{tool.title}</h3>
+                    <p className="text-zinc-600 dark:text-zinc-400 text-sm mb-4">{tool.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                        {tool.stats}
+                      </span>
+                      <ArrowRight size={18} className="text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </Link>
                 </motion.div>
               ))}
             </div>

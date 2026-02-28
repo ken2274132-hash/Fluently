@@ -1,10 +1,18 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Mic, MicOff, Phone, Sparkles, Loader2, ArrowLeft, Volume2, MessageCircle, Send } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TOPICS, SITE_CONFIG } from '@/lib/constants';
+import { useAuth } from '@/components/providers/AuthProvider';
+
+interface UserProfile {
+    name?: string;
+    nativeLanguage?: string;
+    englishLevel?: string;
+    learningGoal?: string;
+}
 
 export default function VoicePage() {
     const [isRecording, setIsRecording] = useState(false);
@@ -16,6 +24,18 @@ export default function VoicePage() {
     const [isClient, setIsClient] = useState(false);
     const [sessionStarted, setSessionStarted] = useState(false);
     const [audioLevel, setAudioLevel] = useState(0);
+    const { profile } = useAuth();
+
+    // Convert auth profile to chat profile format
+    const userProfile: UserProfile | null = useMemo(() => {
+        if (!profile) return null;
+        return {
+            name: profile.full_name || undefined,
+            nativeLanguage: profile.native_language,
+            englishLevel: profile.english_level,
+            learningGoal: profile.learning_goal || undefined
+        };
+    }, [profile]);
 
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
@@ -27,6 +47,7 @@ export default function VoicePage() {
 
     useEffect(() => {
         setIsClient(true);
+
         return () => {
             // Quick cleanup - don't block navigation
             try {
@@ -35,7 +56,7 @@ export default function VoicePage() {
                 audioRef.current?.pause();
                 window.speechSynthesis?.cancel();
                 audioContextRef.current?.close().catch(() => {});
-            } catch (e) {}
+            } catch {}
         };
     }, []);
 
@@ -117,7 +138,8 @@ export default function VoicePage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: topic.prompt,
-                    history: []
+                    history: [],
+                    profile: userProfile
                 })
             });
             const { response } = await chatRes.json();
@@ -148,7 +170,7 @@ export default function VoicePage() {
             const chatRes = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, history: messages.slice(-10) })
+                body: JSON.stringify({ message: text, history: messages.slice(-10), profile: userProfile })
             });
             const { response } = await chatRes.json();
 

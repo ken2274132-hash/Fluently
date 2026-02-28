@@ -27,6 +27,16 @@ interface UserStats {
   totalPracticeTime: number;
 }
 
+interface QuizStats {
+  bestScore: number;
+  totalQuizzesTaken: number;
+}
+
+interface FlashcardStats {
+  knownCards: string[];
+  learningCards: string[];
+}
+
 interface RecentSession {
   id: string;
   topic: string;
@@ -66,7 +76,22 @@ export default function DashboardPage() {
   });
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>(cached?.recentSessions || []);
   const [sessionsLoading, setSessionsLoading] = useState(!cached?.recentSessions);
+  const [quizStats, setQuizStats] = useState<QuizStats | null>(null);
+  const [flashcardStats, setFlashcardStats] = useState<FlashcardStats | null>(null);
   const supabase = useMemo(() => createClient(), []);
+
+  // Load quiz and flashcard stats from localStorage
+  useEffect(() => {
+    const savedQuizStats = localStorage.getItem('quizStats');
+    if (savedQuizStats) {
+      setQuizStats(JSON.parse(savedQuizStats));
+    }
+
+    const savedFlashcardStats = localStorage.getItem('flashcardStats');
+    if (savedFlashcardStats) {
+      setFlashcardStats(JSON.parse(savedFlashcardStats));
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -264,83 +289,190 @@ export default function DashboardPage() {
       {/* Learning Section */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-white">Learn & Practice</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Link
             href="/lessons"
-            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-blue-500/40 transition-all shadow-sm"
+            className="group rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-4 hover:border-blue-500/40 transition-all shadow-sm"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <BookOpen size={22} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-blue-600 transition-colors">Lessons</h3>
-                <p className="text-xs text-zinc-500">Grammar & Tenses</p>
-              </div>
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-3">
+              <BookOpen size={20} className="text-white" />
             </div>
+            <h3 className="font-semibold text-sm text-zinc-900 dark:text-white">Lessons</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Grammar & Tenses</p>
           </Link>
 
           <Link
             href="/quiz"
-            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-purple-500/40 transition-all shadow-sm"
+            className="group rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-4 hover:border-purple-500/40 transition-all shadow-sm"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                <Target size={22} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-purple-600 transition-colors">Quiz</h3>
-                <p className="text-xs text-zinc-500">Test Your Knowledge</p>
-              </div>
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-3">
+              <Target size={20} className="text-white" />
             </div>
+            <h3 className="font-semibold text-sm text-zinc-900 dark:text-white">Quiz</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Test Your Knowledge</p>
           </Link>
 
           <Link
             href="/flashcards"
-            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-orange-500/40 transition-all shadow-sm"
+            className="group rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-4 hover:border-orange-500/40 transition-all shadow-sm"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                <Zap size={22} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-orange-600 transition-colors">Flashcards</h3>
-                <p className="text-xs text-zinc-500">Quick Review</p>
-              </div>
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center mb-3">
+              <Zap size={20} className="text-white" />
             </div>
+            <h3 className="font-semibold text-sm text-zinc-900 dark:text-white">Flashcards</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Quick Review</p>
           </Link>
 
           <Link
             href="/grammar-checker"
-            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-green-500/40 transition-all shadow-sm"
+            className="group rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-4 hover:border-green-500/40 transition-all shadow-sm"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shadow-lg shadow-green-500/20">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-green-600 transition-colors">Grammar Check</h3>
-                <p className="text-xs text-zinc-500">Check Your Writing</p>
-              </div>
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center mb-3">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
+            <h3 className="font-semibold text-sm text-zinc-900 dark:text-white">Grammar Check</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">Check Your Writing</p>
           </Link>
 
+        </div>
+      </div>
+
+      {/* Learning Progress Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Learning Progress</h2>
           <Link
             href="/progress"
-            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 hover:border-red-500/40 transition-all shadow-sm"
+            className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 flex items-center gap-1 transition-colors"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/20">
-                <Flame size={22} className="text-white" />
+            View details <ChevronRight size={16} />
+          </Link>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Quiz Progress */}
+          <div className="rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                <Target size={18} className="text-white" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-zinc-900 dark:text-white group-hover:text-red-600 transition-colors">My Progress</h3>
-                <p className="text-xs text-zinc-500">Track Your Learning</p>
+              <div>
+                <div className="font-semibold text-zinc-900 dark:text-white">Quiz Score</div>
+                <div className="text-xs text-zinc-500">Your best performance</div>
               </div>
             </div>
-          </Link>
+            {quizStats ? (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Best Score</span>
+                  <span className={`text-2xl font-bold ${quizStats.bestScore >= 70 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {quizStats.bestScore}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">Quizzes Taken</span>
+                  <span className="text-lg font-semibold text-zinc-900 dark:text-white">{quizStats.totalQuizzesTaken}</span>
+                </div>
+                <Link
+                  href="/quiz"
+                  className="block w-full text-center py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium transition-colors"
+                >
+                  Take Quiz
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-2">
+                <p className="text-sm text-zinc-500 mb-3">No quizzes taken yet</p>
+                <Link
+                  href="/quiz"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 transition-colors"
+                >
+                  Start First Quiz
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Flashcard Progress */}
+          <div className="rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                <Zap size={18} className="text-white" />
+              </div>
+              <div>
+                <div className="font-semibold text-zinc-900 dark:text-white">Flashcards</div>
+                <div className="text-xs text-zinc-500">Memory mastery</div>
+              </div>
+            </div>
+            {flashcardStats && (flashcardStats.knownCards?.length > 0 || flashcardStats.learningCards?.length > 0) ? (
+              <div className="space-y-3">
+                <div className="flex gap-3 text-center">
+                  <div className="flex-1 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                    <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{flashcardStats.knownCards?.length || 0}</div>
+                    <div className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Mastered</div>
+                  </div>
+                  <div className="flex-1 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+                    <div className="text-xl font-bold text-amber-600 dark:text-amber-400">{flashcardStats.learningCards?.length || 0}</div>
+                    <div className="text-xs text-amber-600/70 dark:text-amber-400/70">Learning</div>
+                  </div>
+                </div>
+                <div className="h-2 rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
+                    style={{ width: `${((flashcardStats.knownCards?.length || 0) / 40) * 100}%` }}
+                  />
+                </div>
+                <Link
+                  href="/flashcards"
+                  className="block w-full text-center py-2.5 rounded-xl bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium transition-colors"
+                >
+                  Practice Cards
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-2">
+                <p className="text-sm text-zinc-500 mb-3">Start learning flashcards</p>
+                <Link
+                  href="/flashcards"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500 text-white text-sm font-medium hover:bg-purple-600 transition-colors"
+                >
+                  Start Flashcards
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Lessons Progress */}
+          <div className="rounded-2xl bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/50 p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                <BookOpen size={18} className="text-white" />
+              </div>
+              <div>
+                <div className="font-semibold text-zinc-900 dark:text-white">Lessons</div>
+                <div className="text-xs text-zinc-500">Grammar & Tenses</div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 text-center text-sm">
+                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                  <div className="font-bold text-blue-600 dark:text-blue-400">19</div>
+                  <div className="text-xs text-blue-600/70 dark:text-blue-400/70">Lessons</div>
+                </div>
+                <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20">
+                  <div className="font-bold text-indigo-600 dark:text-indigo-400">8</div>
+                  <div className="text-xs text-indigo-600/70 dark:text-indigo-400/70">Categories</div>
+                </div>
+              </div>
+              <Link
+                href="/lessons"
+                className="block w-full text-center py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
+              >
+                Browse Lessons
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
